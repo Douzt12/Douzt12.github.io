@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#11110f">
+  <meta name="description" content="DOUZT 的个人黑白摄影作品集。关于日常空间、光线与生活留下的痕迹。">
+  <meta property="og:title" content="DOUZT — Photography">
+  <meta property="og:description" content="日常空间、光线与生活留下的痕迹。">
+  <meta property="og:image" content="room-03.jpg">
+  <title>DOUZT — Photography</title>
+  <style>
+    :root{--paper:#e8e6df;--ink:#11110f;--line:rgba(17,17,15,.24)}
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth;background:var(--ink)}
+    body{margin:0;background:var(--paper);color:var(--ink);font-family:Arial,"Helvetica Neue","PingFang SC","Microsoft YaHei",sans-serif;-webkit-font-smoothing:antialiased}
+    body.locked{overflow:hidden}
+    a{color:inherit;text-decoration:none}
+    button{color:inherit;font:inherit}
+    ::selection{background:#171715;color:#f4f2eb}
+    .progress{position:fixed;inset:0 0 auto;z-index:100;height:3px;background:#f5f3ed;transform:scaleX(0);transform-origin:left center;pointer-events:none}
+    header{position:absolute;z-index:20;inset:0 0 auto;display:flex;align-items:center;justify-content:space-between;padding:22px 28px;color:#f5f3ed;mix-blend-mode:difference}
+    .wordmark{display:inline-flex;align-items:center;gap:6px;font-size:clamp(1.25rem,2.2vw,2rem);font-weight:800;letter-spacing:-.06em}
+    .dot{font-size:.3em}
+    nav{display:flex;align-items:center;gap:28px;font-size:.7rem;letter-spacing:.12em;text-transform:uppercase}
+    nav a{border-bottom:1px solid transparent;transition:border-color 180ms ease}
+    nav a:hover,nav a:focus-visible{border-color:currentColor}
+    .nav-index{opacity:.58}
+    .hero{position:relative;height:100svh;min-height:620px;overflow:hidden;background:#111;color:#f5f3ed}
+    .hero>img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center 53%;filter:contrast(1.06);animation:hero-in 1.4s cubic-bezier(.22,1,.36,1) both}
+    .shade{position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.48),transparent 28%),linear-gradient(0deg,rgba(0,0,0,.56),transparent 46%),linear-gradient(90deg,rgba(0,0,0,.22),transparent 58%)}
+    @keyframes hero-in{from{opacity:0;transform:scale(1.08)}to{opacity:1;transform:scale(1.01)}}
+    .micro,.kicker,.counter,.enter,.eyebrow,.meta,.caption,.aside,footer,.lightbox-caption{font-size:.66rem;letter-spacing:.13em;text-transform:uppercase}
+    .kicker{position:absolute;top:95px;left:28px;margin:0;writing-mode:vertical-rl}
+    .hero-title{position:absolute;left:27px;bottom:28px}
+    .hero-title h1{margin:0 0 -.03em;font-family:Georgia,"Times New Roman","Songti SC",serif;font-size:clamp(6rem,18vw,17rem);font-weight:400;line-height:.72;letter-spacing:-.075em}
+    .hero-title p{margin:24px 0 0 5px;font-family:Georgia,"Times New Roman","Songti SC",serif;font-size:clamp(.95rem,1.3vw,1.2rem);letter-spacing:.08em}
+    .enter{position:absolute;right:28px;bottom:28px;display:flex;gap:48px;align-items:center;border-bottom:1px solid rgba(255,255,255,.62);padding-bottom:7px}
+    .counter{position:absolute;right:28px;top:50%;margin:0;transform:rotate(90deg) translateX(50%);transform-origin:right center}
+    .intro{display:grid;grid-template-columns:1.25fr .75fr;min-height:84vh;padding:150px 4vw 120px;border-bottom:1px solid var(--line)}
+    .eyebrow{margin:0 0 54px}
+    .intro h2{margin:0;font-family:Georgia,"Times New Roman","Songti SC",serif;font-size:clamp(3.8rem,8vw,8.6rem);font-weight:400;line-height:.92;letter-spacing:-.075em}
+    .note{align-self:end;max-width:520px;padding:0 1vw 9px 4vw}
+    .note>p:first-child{margin:0 0 64px;font-family:Georgia,"Times New Roman","Songti SC",serif;font-size:clamp(1.2rem,1.8vw,1.65rem);line-height:1.85}
+    .meta{margin:0;opacity:.58}
+    .works{padding:0 4vw 12vw;overflow:hidden}
+    .work{position:relative;margin-top:14vw}
+    .work:nth-child(1){width:68%}.work:nth-child(2){width:55%;margin-left:auto}.work:nth-child(3){width:76%;margin-left:7%}
+    .photo{position:relative;display:block;width:100%;padding:0;border:0;background:#171715;cursor:zoom-in;overflow:hidden}
+    .photo img{display:block;width:100%;aspect-ratio:3/4;object-fit:cover;transition:transform 800ms cubic-bezier(.22,1,.36,1),filter 400ms ease}
+    .photo:hover img,.photo:focus-visible img{transform:scale(1.018);filter:contrast(1.05)}
+    .photo:focus-visible{outline:2px solid var(--ink);outline-offset:5px}
+    .view{position:absolute;inset:auto 12px 12px auto;display:grid;place-items:center;width:76px;aspect-ratio:1;border-radius:50%;background:rgba(235,233,226,.96);font-size:.58rem;letter-spacing:.1em;opacity:0;transform:scale(.75);transition:opacity 250ms ease,transform 400ms cubic-bezier(.22,1,.36,1)}
+    .photo:hover .view,.photo:focus-visible .view{opacity:1;transform:scale(1)}
+    .caption{display:grid;grid-template-columns:56px 1fr auto;gap:18px;padding-top:14px;border-top:1px solid var(--ink);margin-top:10px}
+    .caption h3,.caption p{margin:0;font-size:inherit;font-weight:400}.caption p{margin-top:5px;opacity:.48}
+    .about{display:grid;grid-template-columns:.55fr 1.7fr .75fr;gap:4vw;padding:140px 4vw 180px;background:var(--ink);color:#e8e6df}
+    .statement{margin:0;max-width:900px;font-family:Georgia,"Times New Roman","Songti SC",serif;font-size:clamp(2rem,4vw,4.4rem);line-height:1.35;letter-spacing:-.045em}
+    .aside{display:flex;flex-direction:column;justify-content:flex-end;gap:10px;opacity:.6}
+    footer{display:grid;grid-template-columns:1fr auto 1fr;gap:40px;align-items:end;padding:40px 4vw 32px;background:var(--ink);color:#e8e6df;border-top:1px solid rgba(232,230,223,.22)}
+    footer p{margin:4px 0 0}footer>a:last-child{justify-self:end}
+    .footer-mark{font-size:clamp(2.5rem,6vw,6rem);font-weight:800;line-height:.78;letter-spacing:-.075em}
+    .lightbox{position:fixed;z-index:200;inset:0;background:#0a0a09;color:#efede7;opacity:0;pointer-events:none;transition:opacity 260ms ease}
+    .lightbox.open{opacity:1;pointer-events:auto}
+    .lightbox-image{position:absolute;inset:34px 110px 64px;display:grid;place-items:center}
+    .lightbox-image img{max-width:100%;max-height:100%;object-fit:contain}
+    .lightbox button{position:absolute;z-index:2;border:0;background:transparent;color:inherit;cursor:pointer}
+    .close{top:24px;right:28px;padding:8px 0 8px 16px;font-size:.68rem;letter-spacing:.12em;text-transform:uppercase}
+    .prev,.next{top:50%;padding:22px;font-size:1.8rem;transform:translateY(-50%)}.prev{left:0}.next{right:0}
+    .lightbox-caption{position:absolute;inset:auto 28px 20px;display:grid;grid-template-columns:90px 1fr auto;gap:20px}
+    @media(max-width:760px){header{padding:18px}nav{gap:16px}.nav-index,nav a:last-of-type{display:none}.hero{min-height:600px}.hero>img{object-position:55% center}.kicker{top:82px;left:18px}.hero-title{left:17px;bottom:68px}.hero-title h1{font-size:25vw}.hero-title p{margin-top:18px;font-size:.82rem}.enter{right:18px;bottom:20px;left:18px;justify-content:space-between}.counter{display:none}.intro{grid-template-columns:1fr;min-height:0;padding:92px 18px 100px}.eyebrow{margin-bottom:36px}.intro h2{font-size:15.5vw}.note{padding:80px 0 0 16vw}.note>p:first-child{margin-bottom:40px;font-size:1.05rem;line-height:1.9}.works{padding:0 18px 110px}.work,.work:nth-child(1),.work:nth-child(2),.work:nth-child(3){width:100%;margin:92px 0 0}.work:nth-child(2){width:86%;margin-left:14%}.work:nth-child(3){width:93%}.view{opacity:1;transform:scale(.72);transform-origin:right bottom}.caption{grid-template-columns:34px 1fr}.caption>span:last-child{display:none}.about{grid-template-columns:1fr;padding:88px 18px 110px}.statement{font-size:2rem;line-height:1.45}.aside{margin-top:60px}footer{grid-template-columns:1fr auto;padding:34px 18px 28px}footer>div{display:none}.lightbox-image{inset:60px 12px 82px}.prev,.next{top:auto;bottom:22px;padding:12px;transform:none}.lightbox-caption{inset:auto 62px 24px;grid-template-columns:1fr;gap:5px;text-align:center}.lightbox-caption span:last-child{display:none}}
+    @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important;transition-duration:.01ms!important}}
+  </style>
+</head>
+<body>
+  <div class="progress" aria-hidden="true"></div>
+  <header>
+    <a class="wordmark" href="#top" aria-label="返回首页">DOUZT<span class="dot">●</span></a>
+    <nav aria-label="主要导航"><a href="#series">作品</a><a href="#about">关于</a><span class="nav-index">001 / 001</span></nav>
+  </header>
+  <main>
+    <section class="hero" id="top" aria-labelledby="hero-title">
+      <img src="room-03.jpg" alt="晾着衣物的幽深黑白走廊" fetchpriority="high">
+      <div class="shade"></div>
+      <p class="kicker">Independent photography archive · 2026</p>
+      <div class="hero-title"><h1 id="hero-title">ROOM</h1><p>房间，以及被光触碰过的日常。</p></div>
+      <a class="enter" href="#series"><span>观看系列</span><span aria-hidden="true">↓</span></a>
+      <p class="counter">SERIES 001</p>
+    </section>
+    <section class="intro" id="series">
+      <div><p class="eyebrow">Series 001 / Room</p><h2>生活的内部<br>从不真正安静。</h2></div>
+      <div class="note"><p>我拍下那些通常不会被凝视的地方：一段走廊、窗边的手、略微倾斜的房间。物件保持沉默，光线替它们说话。</p><p class="meta">3 photographs · Black &amp; white · 2026</p></div>
+    </section>
+    <section class="works" aria-label="ROOM 系列摄影作品">
+      <article class="work"><button class="photo" data-index="0" aria-label="全屏查看：倾斜的房间"><img src="room-01.jpg" alt="倾斜视角下的黑白房间、帘子与生活用品" loading="lazy"><span class="view">VIEW →</span></button><div class="caption"><span>01</span><div><h3>倾斜的房间</h3><p>Room, tilted</p></div><span>DOUZT / 2026</span></div></article>
+      <article class="work"><button class="photo" data-index="1" aria-label="全屏查看：窗边的手势"><img src="room-02.jpg" alt="窗边一只扶着瓶子的手，墙上落着模糊树影" loading="lazy"><span class="view">VIEW →</span></button><div class="caption"><span>02</span><div><h3>窗边的手势</h3><p>A gesture by the window</p></div><span>DOUZT / 2026</span></div></article>
+      <article class="work"><button class="photo" data-index="2" aria-label="全屏查看：走廊还在延伸"><img src="room-03.jpg" alt="晾着衣物的幽深黑白走廊，尽头有一束光" loading="lazy"><span class="view">VIEW →</span></button><div class="caption"><span>03</span><div><h3>走廊还在延伸</h3><p>The corridor keeps going</p></div><span>DOUZT / 2026</span></div></article>
+    </section>
+    <section class="about" id="about"><p class="eyebrow">About / 关于</p><p class="statement">DOUZT 用摄影保存不稳定的瞬间。关注日常空间、身体痕迹与自然光，相信普通生活里始终藏着值得停留的一帧。</p><div class="aside"><span>Based in China</span><span>Available light only</span><span>Black / White / In-between</span></div></section>
+  </main>
+  <footer><a class="footer-mark" href="#top">DOUZT</a><div><p>Personal photography archive</p><p>© 2026 DOUZT</p></div><a href="https://douzt12.github.io/">douzt12.github.io →</a></footer>
+  <div class="lightbox" role="dialog" aria-modal="true" aria-label="全屏作品浏览" aria-hidden="true"><button class="close" aria-label="关闭全屏作品">关闭 ×</button><div class="lightbox-image"><img src="room-01.jpg" alt=""></div><div class="lightbox-caption"><span class="lb-number">01 / 03</span><span class="lb-zh">倾斜的房间</span><span class="lb-en">Room, tilted</span></div><button class="prev" aria-label="上一张">←</button><button class="next" aria-label="下一张">→</button></div>
+  <script>
+    const works=[
+      {src:'room-01.jpg',zh:'倾斜的房间',en:'Room, tilted',alt:'倾斜视角下的黑白房间、帘子与生活用品'},
+      {src:'room-02.jpg',zh:'窗边的手势',en:'A gesture by the window',alt:'窗边一只扶着瓶子的手，墙上落着模糊树影'},
+      {src:'room-03.jpg',zh:'走廊还在延伸',en:'The corridor keeps going',alt:'晾着衣物的幽深黑白走廊，尽头有一束光'}
+    ];
+    const progress=document.querySelector('.progress');
+    const lightbox=document.querySelector('.lightbox');
+    const full=document.querySelector('.lightbox-image img');
+    let current=0;
+    function updateProgress(){const range=document.documentElement.scrollHeight-innerHeight;progress.style.transform=`scaleX(${range>0?scrollY/range:0})`}
+    function show(index){current=(index+works.length)%works.length;const work=works[current];full.src=work.src;full.alt=work.alt;document.querySelector('.lb-number').textContent=`0${current+1} / 03`;document.querySelector('.lb-zh').textContent=work.zh;document.querySelector('.lb-en').textContent=work.en}
+    function openBox(index){show(index);lightbox.classList.add('open');lightbox.setAttribute('aria-hidden','false');document.body.classList.add('locked');document.querySelector('.close').focus()}
+    function closeBox(){lightbox.classList.remove('open');lightbox.setAttribute('aria-hidden','true');document.body.classList.remove('locked')}
+    addEventListener('scroll',updateProgress,{passive:true});updateProgress();
+    document.querySelectorAll('.photo').forEach(button=>button.addEventListener('click',()=>openBox(Number(button.dataset.index))));
+    document.querySelector('.close').addEventListener('click',closeBox);
+    document.querySelector('.prev').addEventListener('click',()=>show(current-1));
+    document.querySelector('.next').addEventListener('click',()=>show(current+1));
+    addEventListener('keydown',event=>{if(!lightbox.classList.contains('open'))return;if(event.key==='Escape')closeBox();if(event.key==='ArrowLeft')show(current-1);if(event.key==='ArrowRight')show(current+1)});
+  </script>
+</body>
+</html>
