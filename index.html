@@ -43,19 +43,20 @@ button { color: inherit; font: inherit; }
 .nav-views { padding-left: 12px; color: var(--muted); border-left: 1px solid var(--border); font-variant-numeric: tabular-nums; }
 
 .site-content { width: calc(100% - clamp(28px, 4vw, 72px)); margin: 0 auto; padding: 32px 0 80px; }
-.compact-hero { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); height: clamp(650px, 78vh, 840px); overflow: hidden; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; box-shadow: var(--shadow); }
-.hero-copy { min-width: 0; padding: clamp(36px, 5vw, 76px); display: flex; flex-direction: column; align-items: stretch; justify-content: center; }
+.compact-hero { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); height: clamp(680px, 78vh, 860px); overflow: hidden; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; box-shadow: var(--shadow); }
+.hero-copy { min-width: 0; padding: clamp(54px, 5.6vw, 104px); padding-bottom: clamp(70px, 9vh, 112px); display: flex; flex-direction: column; align-items: stretch; justify-content: flex-end; }
 .overline { margin: 0; color: var(--muted); font-size: 0.72rem; font-weight: 600; letter-spacing: 0.09em; text-transform: uppercase; }
-.hero-copy h1 { margin: 0 0 28px; font-size: clamp(2.4rem, 3.55vw, 4.25rem); font-weight: 600; line-height: 1.02; letter-spacing: -0.055em; white-space: nowrap; }
+.hero-copy h1 { margin: 0 0 34px; font-size: clamp(2.9rem, 4.1vw, 4.9rem); font-weight: 650; line-height: 1.03; letter-spacing: -0.055em; }
+.hero-copy h1 span { display: block; white-space: nowrap; }
 .hero-summary { max-width: 430px; margin: 0; color: var(--muted); font-size: 1rem; line-height: 1.75; }
 .hero-copy blockquote { margin: 34px 0 30px; padding-left: 18px; border-left: 2px solid var(--border); }
 .hero-copy blockquote p { margin: 0; font-family: Georgia, "Times New Roman", serif; font-size: 1rem; line-height: 1.55; }
 .hero-copy cite { display: block; margin-top: 8px; color: var(--muted); font-size: 0.7rem; font-style: normal; letter-spacing: 0.08em; text-transform: uppercase; }
-.quote-credit { width: 100%; margin: 0; color: var(--muted); font-family: Georgia, "Times New Roman", serif; font-size: 0.86rem; letter-spacing: 0.025em; text-align: right; }
+.quote-credit { width: 100%; margin: 0; color: var(--ink); font-family: Georgia, "Times New Roman", serif; font-size: clamp(0.82rem, 1vw, 1rem); letter-spacing: 0.025em; text-align: left; }
 .primary-link { display: inline-flex; align-items: center; gap: 20px; padding: 9px 14px; background: var(--ink); color: #fff; border: 1px solid rgba(31, 35, 40, 0.15); border-radius: 7px; font-size: 0.86rem; font-weight: 600; transition: transform 180ms ease, background 180ms ease; }
 .primary-link:hover { background: #32383f; transform: translateY(-1px); }
 .hero-visual { position: relative; min-height: 0; overflow: hidden; background: #d8dadd; }
-.hero-visual img { object-fit: cover; object-position: center 46%; }
+.hero-visual img { object-fit: cover; object-position: center 45%; }
 .visual-label { position: absolute; right: 14px; bottom: 14px; padding: 6px 9px; background: rgba(0, 0, 0, 0.7); color: #fff; border: 1px solid rgba(255, 255, 255, 0.22); border-radius: 6px; font-size: 0.65rem; letter-spacing: 0.06em; text-transform: uppercase; backdrop-filter: blur(8px); }
 
 .portfolio-layout { display: grid; grid-template-columns: minmax(0, 1fr); align-items: start; padding-top: 40px; }
@@ -170,8 +171,10 @@ footer > a:last-child { color: var(--accent); }
 @media (max-width: 820px) {
   .site-content, .topbar-inner, footer { width: min(100% - 28px, 680px); }
   .compact-hero { grid-template-columns: 1fr; height: auto; }
-  .hero-copy { padding: 38px 28px; }
-  .hero-copy h1 { white-space: normal; }
+  .hero-copy { padding: 44px 30px 48px; justify-content: center; }
+  .hero-copy h1 { margin-bottom: 24px; }
+  .hero-copy h1 span { white-space: normal; }
+  .quote-credit { letter-spacing: 0.025em; }
   .hero-visual { height: clamp(440px, 68vh, 620px); min-height: 0; grid-row: 1; }
   .portfolio-layout { grid-template-columns: 1fr; }
   .guestbook-form { grid-template-columns: minmax(200px, 0.65fr) minmax(0, 1fr); }
@@ -238,8 +241,8 @@ footer > a:last-child { color: var(--accent); }
     <section class="compact-hero reveal" aria-labelledby="hero-title">
       <div class="hero-visual hero-photo"><img src="hero-pavilion.jpg" alt="海边亭台、月亮与水面的黑白照片" fetchpriority="high"></div>
       <div class="hero-copy">
-        <h1 id="hero-title">The image itself has not changed.</h1>
-        <p class="quote-credit">— Donald Alexander Sheff</p>
+        <h1 id="hero-title"><span>The image itself</span><span>has not changed.</span></h1>
+        <p class="quote-credit">—— Donald Alexander Sheff</p>
       </div>
     </section>
 
