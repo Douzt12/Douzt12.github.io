@@ -9,6 +9,7 @@
   <meta property="og:description" content="保存黑白胶片中的日常、空间与光线。">
   <meta property="og:image" content="og.png">
   <title>DOUZT — Film Photography Archive</title>
+  <script src="guestbook-config.js"></script>
   <style>
 :root {
   --canvas: #f6f8fa;
@@ -42,10 +43,10 @@ button { color: inherit; font: inherit; }
 .nav-views { padding-left: 12px; color: var(--muted); border-left: 1px solid var(--border); font-variant-numeric: tabular-nums; }
 
 .site-content { width: calc(100% - clamp(28px, 4vw, 72px)); margin: 0 auto; padding: 32px 0 80px; }
-.compact-hero { display: grid; grid-template-columns: minmax(360px, 0.46fr) minmax(420px, 0.54fr); height: clamp(520px, 68vh, 680px); overflow: hidden; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; box-shadow: var(--shadow); }
+.compact-hero { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); height: clamp(650px, 78vh, 840px); overflow: hidden; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; box-shadow: var(--shadow); }
 .hero-copy { min-width: 0; padding: clamp(36px, 5vw, 76px); display: flex; flex-direction: column; align-items: stretch; justify-content: center; }
 .overline { margin: 0; color: var(--muted); font-size: 0.72rem; font-weight: 600; letter-spacing: 0.09em; text-transform: uppercase; }
-.hero-copy h1 { margin: 0 0 28px; font-size: clamp(2.5rem, 4.25vw, 4.9rem); font-weight: 600; line-height: 1.02; letter-spacing: -0.055em; }
+.hero-copy h1 { margin: 0 0 28px; font-size: clamp(2.4rem, 3.55vw, 4.25rem); font-weight: 600; line-height: 1.02; letter-spacing: -0.055em; white-space: nowrap; }
 .hero-summary { max-width: 430px; margin: 0; color: var(--muted); font-size: 1rem; line-height: 1.75; }
 .hero-copy blockquote { margin: 34px 0 30px; padding-left: 18px; border-left: 2px solid var(--border); }
 .hero-copy blockquote p { margin: 0; font-family: Georgia, "Times New Roman", serif; font-size: 1rem; line-height: 1.55; }
@@ -108,18 +109,19 @@ button { color: inherit; font: inherit; }
 .empty-month p { margin: 3px 0 0; font-size: 0.76rem; }
 .empty-month > span:last-child { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.07em; }
 
-.about-card { display: grid; grid-template-columns: minmax(210px, 0.34fr) minmax(0, 0.66fr); gap: clamp(36px, 7vw, 110px); margin: 24px 0 0; padding: 36px 40px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; box-shadow: var(--shadow); }
+.about-card { display: flex; flex-direction: column; align-items: center; gap: 28px; margin: 24px 0 0; padding: 42px 40px; text-align: center; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; box-shadow: var(--shadow); }
+.about-identity { display: flex; flex-direction: column; align-items: center; }
 .about-identity .overline { margin-bottom: 24px; }
 .about-identity h2 { margin: 0; font-size: 1.45rem; letter-spacing: -0.03em; }
-.about-profile-copy { align-self: end; max-width: 680px; }
+.about-profile-copy { width: min(100%, 620px); }
 .about-profile-copy > p { margin: 0 0 24px; color: var(--ink); font-size: 0.92rem; line-height: 1.75; }
 .about-profile-copy dl { display: grid; gap: 3px; margin: 0; }
-.about-profile-copy dl div { display: grid; grid-template-columns: 60px 1fr; gap: 12px; padding: 7px 0; font-size: 0.8rem; }
+.about-profile-copy dl div { display: grid; justify-items: center; gap: 3px; padding: 7px 0; font-size: 0.8rem; }
 .about-profile-copy dt { color: var(--muted); }
-.about-profile-copy dd { margin: 0; text-align: right; }
+.about-profile-copy dd { margin: 0; text-align: center; }
 
 .guestbook-card { margin: 48px 0 0; overflow: hidden; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; box-shadow: var(--shadow); }
-.guestbook-heading { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; padding: 32px 34px 28px; border-bottom: 1px solid var(--border); }
+.guestbook-heading { display: flex; align-items: center; justify-content: space-between; gap: 24px; padding: 24px 34px; border-bottom: 1px solid var(--border); }
 .guestbook-heading h2 { margin: 7px 0 6px; font-size: 1.75rem; letter-spacing: -0.035em; }
 .guestbook-heading > div > p:last-child { margin: 0; color: var(--muted); font-size: 0.8rem; line-height: 1.6; }
 .guestbook-form { display: grid; grid-template-columns: minmax(220px, 0.34fr) minmax(0, 1fr) auto; gap: 16px; align-items: end; padding: 24px 34px; background: #f6f8fa; border-bottom: 1px solid var(--border); }
@@ -134,6 +136,7 @@ button { color: inherit; font: inherit; }
 .form-actions > span { color: var(--muted); font-size: 0.68rem; font-variant-numeric: tabular-nums; }
 .form-actions button { min-width: 112px; padding: 9px 13px; color: #fff; background: var(--ink); border: 1px solid rgba(31, 35, 40, 0.15); border-radius: 7px; font-size: 0.82rem; font-weight: 600; cursor: pointer; transition: transform 160ms ease, background 160ms ease; }
 .form-actions button:hover { background: #32383f; transform: translateY(-1px); }
+.form-actions button:disabled { opacity: 0.55; cursor: not-allowed; transform: none; }
 .message-list { display: grid; }
 .message-item { display: grid; grid-template-columns: minmax(150px, 0.28fr) minmax(0, 1fr); gap: 24px; padding: 20px 34px; border-bottom: 1px solid var(--border-soft); }
 .message-item:last-child { border-bottom: 0; }
@@ -168,6 +171,7 @@ footer > a:last-child { color: var(--accent); }
   .site-content, .topbar-inner, footer { width: min(100% - 28px, 680px); }
   .compact-hero { grid-template-columns: 1fr; height: auto; }
   .hero-copy { padding: 38px 28px; }
+  .hero-copy h1 { white-space: normal; }
   .hero-visual { height: clamp(440px, 68vh, 620px); min-height: 0; grid-row: 1; }
   .portfolio-layout { grid-template-columns: 1fr; }
   .guestbook-form { grid-template-columns: minmax(200px, 0.65fr) minmax(0, 1fr); }
@@ -234,7 +238,7 @@ footer > a:last-child { color: var(--accent); }
     <section class="compact-hero reveal" aria-labelledby="hero-title">
       <div class="hero-visual hero-photo"><img src="hero-pavilion.jpg" alt="海边亭台、月亮与水面的黑白照片" fetchpriority="high"></div>
       <div class="hero-copy">
-        <h1 id="hero-title">The image itself<br>has not changed.</h1>
+        <h1 id="hero-title">The image itself has not changed.</h1>
         <p class="quote-credit">— Donald Alexander Sheff</p>
       </div>
     </section>
@@ -261,7 +265,7 @@ footer > a:last-child { color: var(--accent); }
 
     <section class="guestbook-card reveal" id="guestbook" aria-labelledby="guestbook-title">
       <header class="guestbook-heading">
-        <div><p class="overline">Guestbook / 留言板</p><h2 id="guestbook-title">留下一句话。</h2><p>留言公开展示，不设回复。提交时会前往 GitHub 完成最后确认。</p></div>
+        <p class="overline" id="guestbook-title">Guestbook / 留言板</p>
         <span class="count-badge" id="message-count">0 messages</span>
       </header>
       <form class="guestbook-form" id="guestbook-form">
@@ -329,30 +333,41 @@ footer > a:last-child { color: var(--accent); }
     const counted=sessionStorage.getItem('douzt-view-counted')==='1';
     fetch(counterEndpoint+'?'+(counted?'readOnly=true':'unique=true')).then(response=>{if(!response.ok)throw new Error();return response.json()}).then(data=>{document.getElementById('view-count').textContent=new Intl.NumberFormat('zh-CN').format(Number(data.value)||0);sessionStorage.setItem('douzt-view-counted','1')}).catch(()=>{document.getElementById('view-count').textContent='—'});
 
-    const issuesEndpoint='https://api.github.com/repos/Douzt12/Douzt12.github.io/issues?state=open&per_page=30&sort=created&direction=desc';
     const messageList=document.getElementById('message-list');
+    const guestbookConfig=window.DOUZT_GUESTBOOK_CONFIG||{};
+    const rawSupabaseUrl=String(guestbookConfig.supabaseUrl||'');
+    const supabaseUrl=rawSupabaseUrl.endsWith('/')?rawSupabaseUrl.slice(0,-1):rawSupabaseUrl;
+    const supabaseKey=String(guestbookConfig.supabasePublishableKey||'');
+    const guestbookReady=Boolean(supabaseUrl&&supabaseKey);
+    const guestbookHeaders=(extra={})=>({apikey:supabaseKey,Authorization:'Bearer '+supabaseKey,'Content-Type':'application/json',...extra});
     function escapeHtml(value){const node=document.createElement('span');node.textContent=value;return node.innerHTML}
-    function cleanMessage(body){return String(body||'').split('\n---\n')[0].trim()}
     function formatDate(value){return new Intl.DateTimeFormat('zh-CN',{year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date(value))}
     function loadMessages(){
+      if(!guestbookReady){messageList.innerHTML='<p class="board-state">免登录留言正在配置。</p>';return}
       messageList.innerHTML='<p class="board-state">正在读取留言……</p>';
-      fetch(issuesEndpoint,{headers:{Accept:'application/vnd.github+json'}}).then(response=>{if(!response.ok)throw new Error();return response.json()}).then(items=>{
-        const messages=items.filter(item=>!item.pull_request&&item.title.startsWith('[留言]'));
+      fetch(supabaseUrl+'/rest/v1/guestbook_messages?select=id,name,message,created_at&order=created_at.desc&limit=50',{headers:guestbookHeaders()}).then(response=>{if(!response.ok)throw new Error();return response.json()}).then(messages=>{
         document.getElementById('message-count').textContent=messages.length+' messages';
-        if(!messages.length){messageList.innerHTML='<p class="board-state">还没有留言。第一句话，可以由你留下。</p>';return}
-        messageList.innerHTML=messages.map(item=>'<article class="message-item"><header><strong>'+escapeHtml(item.title.replace(/^\[留言\]\s*/, '').trim()||item.user.login||'访客')+'</strong><time datetime="'+escapeHtml(item.created_at)+'">'+formatDate(item.created_at)+'</time></header><p>'+escapeHtml(cleanMessage(item.body))+'</p></article>').join('');
+        if(!messages.length){messageList.innerHTML='<p class="board-state">还没有留言。</p>';return}
+        messageList.innerHTML=messages.map(item=>'<article class="message-item"><header><strong>'+escapeHtml(item.name||'访客')+'</strong><time datetime="'+escapeHtml(item.created_at)+'">'+formatDate(item.created_at)+'</time></header><p>'+escapeHtml(item.message)+'</p></article>').join('');
       }).catch(()=>{messageList.innerHTML='<p class="board-state">留言暂时无法读取。<button type="button" id="reload-messages">重新加载</button></p>';document.getElementById('reload-messages').addEventListener('click',loadMessages)});
     }
     loadMessages();
     const guestMessage=document.getElementById('guest-message');
+    const guestForm=document.getElementById('guestbook-form');
+    const guestSubmit=guestForm.querySelector('button[type="submit"]');
+    if(!guestbookReady)guestSubmit.disabled=true;
     guestMessage.addEventListener('input',()=>{document.getElementById('character-count').textContent=guestMessage.value.length+' / 300'});
-    document.getElementById('guestbook-form').addEventListener('submit',event=>{
+    guestForm.addEventListener('submit',async event=>{
       event.preventDefault();
       const name=document.getElementById('guest-name').value.trim()||'访客';
       const message=guestMessage.value.trim();
-      if(!message)return;
-      const params=new URLSearchParams({title:'[留言] '+name,body:message+'\n\n---\n来自 DOUZT 作品集留言板'});
-      window.open('https://github.com/Douzt12/Douzt12.github.io/issues/new?'+params.toString(),'_blank','noopener,noreferrer');
+      if(!guestbookReady||!message)return;
+      guestSubmit.disabled=true;guestSubmit.textContent='正在提交…';
+      try{
+        const response=await fetch(supabaseUrl+'/rest/v1/guestbook_messages',{method:'POST',headers:guestbookHeaders({Prefer:'return=minimal'}),body:JSON.stringify({name,message})});
+        if(!response.ok)throw new Error();
+        document.getElementById('guest-name').value='';guestMessage.value='';document.getElementById('character-count').textContent='0 / 300';guestSubmit.textContent='已提交';await loadMessages();setTimeout(()=>{guestSubmit.disabled=false;guestSubmit.innerHTML='公开留言 <span aria-hidden="true">→</span>'},1600);
+      }catch{guestSubmit.disabled=false;guestSubmit.textContent='重试提交'}
     });
   </script>
 </body>
