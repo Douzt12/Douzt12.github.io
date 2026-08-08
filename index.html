@@ -54,7 +54,7 @@ button { color: inherit; font: inherit; }
 .primary-link { display: inline-flex; align-items: center; gap: 20px; padding: 9px 14px; background: var(--ink); color: #fff; border: 1px solid rgba(31, 35, 40, 0.15); border-radius: 7px; font-size: 0.86rem; font-weight: 600; transition: transform 180ms ease, background 180ms ease; }
 .primary-link:hover { background: #32383f; transform: translateY(-1px); }
 .hero-visual { position: relative; min-height: 0; overflow: hidden; background: #d8dadd; }
-.hero-visual img { object-fit: contain; object-position: center; }
+.hero-visual img { object-fit: cover; object-position: center 46%; }
 .visual-label { position: absolute; right: 14px; bottom: 14px; padding: 6px 9px; background: rgba(0, 0, 0, 0.7); color: #fff; border: 1px solid rgba(255, 255, 255, 0.22); border-radius: 6px; font-size: 0.65rem; letter-spacing: 0.06em; text-transform: uppercase; backdrop-filter: blur(8px); }
 
 .portfolio-layout { display: grid; grid-template-columns: minmax(0, 1fr); align-items: start; padding-top: 40px; }
@@ -113,8 +113,8 @@ button { color: inherit; font: inherit; }
 .about-identity h2 { margin: 0; font-size: 1.45rem; letter-spacing: -0.03em; }
 .about-profile-copy { align-self: end; max-width: 680px; }
 .about-profile-copy > p { margin: 0 0 24px; color: var(--ink); font-size: 0.92rem; line-height: 1.75; }
-.about-profile-copy dl { margin: 0; border-top: 1px solid var(--border-soft); }
-.about-profile-copy dl div { display: grid; grid-template-columns: 60px 1fr; gap: 12px; padding: 11px 0; border-bottom: 1px solid var(--border-soft); font-size: 0.8rem; }
+.about-profile-copy dl { display: grid; gap: 3px; margin: 0; }
+.about-profile-copy dl div { display: grid; grid-template-columns: 60px 1fr; gap: 12px; padding: 7px 0; font-size: 0.8rem; }
 .about-profile-copy dt { color: var(--muted); }
 .about-profile-copy dd { margin: 0; text-align: right; }
 
@@ -122,13 +122,15 @@ button { color: inherit; font: inherit; }
 .guestbook-heading { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; padding: 32px 34px 28px; border-bottom: 1px solid var(--border); }
 .guestbook-heading h2 { margin: 7px 0 6px; font-size: 1.75rem; letter-spacing: -0.035em; }
 .guestbook-heading > div > p:last-child { margin: 0; color: var(--muted); font-size: 0.8rem; line-height: 1.6; }
-.guestbook-form { display: grid; grid-template-columns: minmax(180px, 0.32fr) minmax(320px, 1fr) auto; gap: 16px; align-items: end; padding: 24px 34px; background: #f6f8fa; border-bottom: 1px solid var(--border); }
+.guestbook-form { display: grid; grid-template-columns: minmax(220px, 0.34fr) minmax(0, 1fr) auto; gap: 16px; align-items: end; padding: 24px 34px; background: #f6f8fa; border-bottom: 1px solid var(--border); }
 .guestbook-form label { display: grid; gap: 7px; color: var(--muted); font-size: 0.74rem; }
+.guestbook-form .message-field { grid-column: 1 / -1; }
+.guestbook-form .name-field { grid-column: 1; }
 .guestbook-form input, .guestbook-form textarea { width: 100%; padding: 9px 11px; color: var(--ink); background: var(--surface); border: 1px solid var(--border); border-radius: 6px; font: inherit; font-size: 0.86rem; outline: none; resize: vertical; transition: border-color 160ms ease, box-shadow 160ms ease; }
 .guestbook-form input { height: 40px; }
-.guestbook-form textarea { min-height: 84px; max-height: 180px; line-height: 1.55; }
+.guestbook-form textarea { min-height: 108px; max-height: 220px; line-height: 1.55; }
 .guestbook-form input:focus, .guestbook-form textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(9, 105, 218, 0.12); }
-.form-actions { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
+.form-actions { grid-column: 3; display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
 .form-actions > span { color: var(--muted); font-size: 0.68rem; font-variant-numeric: tabular-nums; }
 .form-actions button { min-width: 112px; padding: 9px 13px; color: #fff; background: var(--ink); border: 1px solid rgba(31, 35, 40, 0.15); border-radius: 7px; font-size: 0.82rem; font-weight: 600; cursor: pointer; transition: transform 160ms ease, background 160ms ease; }
 .form-actions button:hover { background: #32383f; transform: translateY(-1px); }
@@ -154,8 +156,8 @@ footer > a:last-child { color: var(--accent); }
 
 .lightbox { position: fixed; z-index: 200; inset: 0; background: rgba(13, 17, 23, 0.96); color: #fff; animation: lightbox-in 220ms ease both; }
 @keyframes lightbox-in { from { opacity: 0; } to { opacity: 1; } }
-.lightbox-image { position: absolute; inset: 42px 100px 68px; }
-.lightbox-image img { object-fit: contain; }
+.lightbox-image { position: absolute; top: 50%; left: 50%; width: min(82vw, 1400px); height: min(78vh, 900px); transform: translate(-50%, -50%); }
+.lightbox-image img { width: 100% !important; height: 100% !important; object-fit: contain; }
 .lightbox-close, .lightbox-prev, .lightbox-next { position: absolute; z-index: 2; border: 0; background: transparent; color: inherit; cursor: pointer; }
 .lightbox-close { top: 18px; right: 24px; padding: 8px; font-size: 0.75rem; }
 .lightbox-prev, .lightbox-next { top: 50%; padding: 24px; font-size: 1.5rem; transform: translateY(-50%); }
@@ -168,8 +170,9 @@ footer > a:last-child { color: var(--accent); }
   .hero-copy { padding: 38px 28px; }
   .hero-visual { height: clamp(440px, 68vh, 620px); min-height: 0; grid-row: 1; }
   .portfolio-layout { grid-template-columns: 1fr; }
-  .guestbook-form { grid-template-columns: 1fr 1.5fr; }
-  .form-actions { grid-column: 1 / -1; flex-direction: row; align-items: center; justify-content: space-between; }
+  .guestbook-form { grid-template-columns: minmax(200px, 0.65fr) minmax(0, 1fr); }
+  .guestbook-form .message-field { grid-column: 1 / -1; }
+  .form-actions { grid-column: 2; flex-direction: row; align-items: center; justify-content: flex-end; }
 }
 
 @media (max-width: 620px) {
@@ -188,7 +191,8 @@ footer > a:last-child { color: var(--accent); }
   .about-profile-copy { max-width: none; }
   .guestbook-heading { align-items: flex-start; flex-direction: column; padding: 26px 24px 22px; }
   .guestbook-form { grid-template-columns: 1fr; padding: 22px 24px; }
-  .form-actions { grid-column: auto; }
+  .guestbook-form .message-field, .guestbook-form .name-field, .form-actions { grid-column: 1; }
+  .form-actions { justify-content: space-between; }
   .message-item { grid-template-columns: 1fr; gap: 10px; padding: 18px 24px; }
   .message-item header { flex-direction: row; justify-content: space-between; }
   .board-state { padding: 24px; }
@@ -196,7 +200,7 @@ footer > a:last-child { color: var(--accent); }
   footer > div { display: block; }
   footer p { margin-top: 8px; }
   footer > span { display: none; }
-  .lightbox-image { inset: 56px 12px 86px; }
+  .lightbox-image { width: calc(100vw - 24px); height: calc(100vh - 160px); }
   .lightbox-prev, .lightbox-next { top: auto; bottom: 18px; padding: 12px; transform: none; }
   .lightbox-caption { inset: auto 58px 23px; grid-template-columns: 1fr; gap: 4px; text-align: center; }
   .lightbox-caption span:last-child { display: none; }
@@ -261,8 +265,8 @@ footer > a:last-child { color: var(--accent); }
         <span class="count-badge" id="message-count">0 messages</span>
       </header>
       <form class="guestbook-form" id="guestbook-form">
-        <label><span>称呼</span><input id="guest-name" type="text" maxlength="30" placeholder="你的名字（可选）"></label>
         <label class="message-field"><span>留言</span><textarea id="guest-message" required maxlength="300" rows="4" placeholder="写下一句想说的话……"></textarea></label>
+        <label class="name-field"><span>称呼</span><input id="guest-name" type="text" maxlength="30" placeholder="你的名字（可选）"></label>
         <div class="form-actions"><span id="character-count">0 / 300</span><button type="submit">公开留言 <span aria-hidden="true">→</span></button></div>
       </form>
       <div class="message-list" id="message-list" aria-live="polite"><p class="board-state">正在读取留言……</p></div>
