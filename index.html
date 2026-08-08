@@ -4,133 +4,640 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#002FA7">
-  <meta name="description" content="DOUZT 的个人黑白摄影作品集。关于日常空间、光线与生活留下的痕迹。">
-  <meta property="og:title" content="DOUZT — Photography">
-  <meta property="og:description" content="日常空间、光线与生活留下的痕迹。">
-  <meta property="og:image" content="room-03.jpg">
-  <title>DOUZT — Photography</title>
+  <meta name="description" content="DOUZT 的个人黑白胶片摄影档案。以月份为单位，保存日常空间、光线与生活留下的痕迹。">
+  <meta property="og:title" content="DOUZT — Film Photography Archive">
+  <meta property="og:description" content="以月份为单位，保存黑白胶片中的日常与光线。">
+  <meta property="og:image" content="hero-film-blue.webp">
+  <title>DOUZT — Film Photography Archive</title>
   <style>
-    :root{--paper:#f4f3ef;--ink:#0a0a09;--line:rgba(10,10,9,.24);--klein:#002fa7}
-    *{box-sizing:border-box}
-    html{scroll-behavior:smooth;background:#0a0a09}
-    body{margin:0;background:var(--paper);color:var(--ink);font-family:Arial,"Helvetica Neue","PingFang SC","Microsoft YaHei",sans-serif;-webkit-font-smoothing:antialiased;transition:background-color 500ms ease,color 500ms ease}
-    body.klein{--paper:var(--klein);--ink:#f7f6f1;--line:rgba(247,246,241,.34)}
-    body.locked{overflow:hidden}
-    a{color:inherit;text-decoration:none}
-    button{color:inherit;font:inherit}
-    ::selection{background:#171715;color:#f4f2eb}
-    .progress{position:fixed;inset:0 0 auto;z-index:100;height:3px;background:#f5f3ed;transform:scaleX(0);transform-origin:left center;pointer-events:none}
-    header{position:absolute;z-index:20;inset:0 0 auto;display:flex;align-items:center;justify-content:space-between;padding:22px 28px;color:#f5f3ed;mix-blend-mode:difference}
-    .wordmark{display:inline-flex;align-items:center;gap:6px;font-size:clamp(1.25rem,2.2vw,2rem);font-weight:800;letter-spacing:-.06em}
-    .dot{font-size:.3em}
-    nav{display:flex;align-items:center;gap:28px;font-size:.7rem;letter-spacing:.12em;text-transform:uppercase}
-    nav a{border-bottom:1px solid transparent;transition:border-color 180ms ease}
-    nav a:hover,nav a:focus-visible{border-color:currentColor}
-    .theme-toggle{display:inline-flex;align-items:center;gap:8px;padding:0 0 2px;border:0;border-bottom:1px solid currentColor;background:transparent;color:inherit;font-size:inherit;letter-spacing:inherit;text-transform:inherit;cursor:pointer}
-    .theme-toggle::before{content:"";width:8px;height:8px;border:1px solid currentColor;background:var(--klein)}
-    body.klein .theme-toggle::before{background:#f7f6f1}
-    .nav-index{opacity:.58}
-    .hero{position:relative;height:100svh;min-height:620px;overflow:hidden;background:#111;color:#f5f3ed}
-    .hero>img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center 53%;filter:contrast(1.06);animation:hero-in 1.4s cubic-bezier(.22,1,.36,1) both}
-    .shade{position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.48),transparent 28%),linear-gradient(0deg,rgba(0,0,0,.56),transparent 46%),linear-gradient(90deg,rgba(0,0,0,.22),transparent 58%)}
-    @keyframes hero-in{from{opacity:0;transform:scale(1.08)}to{opacity:1;transform:scale(1.01)}}
-    .micro,.kicker,.counter,.enter,.eyebrow,.meta,.caption,.aside,footer,.lightbox-caption{font-size:.66rem;letter-spacing:.13em;text-transform:uppercase}
-    .kicker{position:absolute;top:95px;left:28px;margin:0;writing-mode:vertical-rl}
-    .hero-title{position:absolute;left:27px;bottom:28px}
-    .hero-title h1{margin:0 0 -.03em;font-family:Georgia,"Times New Roman","Songti SC",serif;font-size:clamp(6rem,18vw,17rem);font-weight:400;line-height:.72;letter-spacing:-.075em}
-    .hero-title p{margin:24px 0 0 5px;font-family:Georgia,"Times New Roman","Songti SC",serif;font-size:clamp(.95rem,1.3vw,1.2rem);letter-spacing:.08em}
-    .enter{position:absolute;right:28px;bottom:28px;display:flex;gap:48px;align-items:center;border-bottom:1px solid rgba(255,255,255,.62);padding-bottom:7px}
-    .counter{position:absolute;right:28px;top:50%;margin:0;transform:rotate(90deg) translateX(50%);transform-origin:right center}
-    .intro{display:grid;grid-template-columns:1.25fr .75fr;min-height:84vh;padding:150px 4vw 120px;border-bottom:1px solid var(--line)}
-    .eyebrow{margin:0 0 54px}
-    .intro h2{margin:0;font-family:Georgia,"Times New Roman","Songti SC",serif;font-size:clamp(3.8rem,8vw,8.6rem);font-weight:400;line-height:.92;letter-spacing:-.075em}
-    .note{align-self:end;max-width:520px;padding:0 1vw 9px 4vw}
-    .note>p:first-child{margin:0 0 64px;font-family:Georgia,"Times New Roman","Songti SC",serif;font-size:clamp(1.2rem,1.8vw,1.65rem);line-height:1.85}
-    .meta{margin:0;opacity:.58}
-    .works{padding:0 4vw 12vw;overflow:hidden}
-    .work{position:relative;margin-top:14vw}
-    .work:nth-child(1){width:68%}.work:nth-child(2){width:55%;margin-left:auto}.work:nth-child(3){width:76%;margin-left:7%}
-    .photo{position:relative;display:block;width:100%;padding:0;border:0;background:#171715;cursor:zoom-in;overflow:hidden}
-    .photo img{display:block;width:100%;aspect-ratio:3/4;object-fit:cover;transition:transform 800ms cubic-bezier(.22,1,.36,1),filter 400ms ease}
-    .photo:hover img,.photo:focus-visible img{transform:scale(1.018);filter:contrast(1.05)}
-    .photo:focus-visible{outline:2px solid var(--ink);outline-offset:5px}
-    .view{position:absolute;inset:auto 12px 12px auto;display:grid;place-items:center;width:76px;aspect-ratio:1;border-radius:50%;background:rgba(245,244,239,.96);color:#0a0a09;font-size:.58rem;letter-spacing:.1em;opacity:0;transform:scale(.75);transition:opacity 250ms ease,transform 400ms cubic-bezier(.22,1,.36,1)}
-    .photo:hover .view,.photo:focus-visible .view{opacity:1;transform:scale(1)}
-    .caption{display:grid;grid-template-columns:56px 1fr auto;gap:18px;padding-top:14px;border-top:1px solid currentColor;margin-top:10px}
-    .caption h3,.caption p{margin:0;font-size:inherit;font-weight:400}.caption p{margin-top:5px;opacity:.48}
-    .about{display:grid;grid-template-columns:.55fr 1.7fr .75fr;gap:4vw;padding:140px 4vw 180px;background:#0a0a09;color:#f4f3ef}
-    .statement{margin:0;max-width:900px;font-family:Georgia,"Times New Roman","Songti SC",serif;font-size:clamp(2rem,4vw,4.4rem);line-height:1.35;letter-spacing:-.045em}
-    .aside{display:flex;flex-direction:column;justify-content:flex-end;gap:10px;opacity:.6}
-    footer{display:grid;grid-template-columns:1fr auto 1fr;gap:40px;align-items:end;padding:40px 4vw 32px;background:#0a0a09;color:#f4f3ef;border-top:1px solid rgba(232,230,223,.22)}
-    footer p{margin:4px 0 0}footer>a:last-child{justify-self:end}
-    .footer-mark{font-size:clamp(2.5rem,6vw,6rem);font-weight:800;line-height:.78;letter-spacing:-.075em}
-    .lightbox{position:fixed;z-index:200;inset:0;background:#0a0a09;color:#efede7;opacity:0;pointer-events:none;transition:opacity 260ms ease}
-    .lightbox.open{opacity:1;pointer-events:auto}
-    .lightbox-image{position:absolute;inset:34px 110px 64px;display:grid;place-items:center}
-    .lightbox-image img{max-width:100%;max-height:100%;object-fit:contain}
-    .lightbox button{position:absolute;z-index:2;border:0;background:transparent;color:inherit;cursor:pointer}
-    .close{top:24px;right:28px;padding:8px 0 8px 16px;font-size:.68rem;letter-spacing:.12em;text-transform:uppercase}
-    .prev,.next{top:50%;padding:22px;font-size:1.8rem;transform:translateY(-50%)}.prev{left:0}.next{right:0}
-    .lightbox-caption{position:absolute;inset:auto 28px 20px;display:grid;grid-template-columns:90px 1fr auto;gap:20px}
-    @media(max-width:760px){header{padding:18px}nav{gap:16px}.nav-index,nav a:last-of-type{display:none}.hero{min-height:600px}.hero>img{object-position:55% center}.kicker{top:82px;left:18px}.hero-title{left:17px;bottom:68px}.hero-title h1{font-size:25vw}.hero-title p{margin-top:18px;font-size:.82rem}.enter{right:18px;bottom:20px;left:18px;justify-content:space-between}.counter{display:none}.intro{grid-template-columns:1fr;min-height:0;padding:92px 18px 100px}.eyebrow{margin-bottom:36px}.intro h2{font-size:15.5vw}.note{padding:80px 0 0 16vw}.note>p:first-child{margin-bottom:40px;font-size:1.05rem;line-height:1.9}.works{padding:0 18px 110px}.work,.work:nth-child(1),.work:nth-child(2),.work:nth-child(3){width:100%;margin:92px 0 0}.work:nth-child(2){width:86%;margin-left:14%}.work:nth-child(3){width:93%}.view{opacity:1;transform:scale(.72);transform-origin:right bottom}.caption{grid-template-columns:34px 1fr}.caption>span:last-child{display:none}.about{grid-template-columns:1fr;padding:88px 18px 110px}.statement{font-size:2rem;line-height:1.45}.aside{margin-top:60px}footer{grid-template-columns:1fr auto;padding:34px 18px 28px}footer>div{display:none}.lightbox-image{inset:60px 12px 82px}.prev,.next{top:auto;bottom:22px;padding:12px;transform:none}.lightbox-caption{inset:auto 62px 24px;grid-template-columns:1fr;gap:5px;text-align:center}.lightbox-caption span:last-child{display:none}}
-    @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important;transition-duration:.01ms!important}}
+:root {
+  --paper: #efede7;
+  --ink: #0a0a09;
+  --muted: rgba(10, 10, 9, 0.56);
+  --line: rgba(10, 10, 9, 0.24);
+  --klein: #002fa7;
+}
+
+* { box-sizing: border-box; }
+
+html {
+  scroll-behavior: smooth;
+  background: var(--ink);
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: Arial, "Helvetica Neue", "PingFang SC", "Microsoft YaHei", sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+a { color: inherit; text-decoration: none; }
+button { color: inherit; font: inherit; }
+::selection { background: var(--ink); color: var(--paper); }
+
+.scroll-progress {
+  position: fixed;
+  inset: 0 0 auto;
+  z-index: 100;
+  height: 3px;
+  background: #f5f3ed;
+  transform-origin: left center;
+  pointer-events: none;
+}
+
+.site-header {
+  position: absolute;
+  z-index: 20;
+  inset: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 22px 28px;
+  color: #f8f6ef;
+  mix-blend-mode: difference;
+}
+
+.wordmark {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: clamp(1.25rem, 2.2vw, 2rem);
+  font-weight: 800;
+  letter-spacing: -0.06em;
+}
+
+.wordmark-dot { font-size: 0.3em; }
+
+.site-header nav {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  font-size: 0.7rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.site-header nav a {
+  border-bottom: 1px solid transparent;
+  transition: border-color 180ms ease;
+}
+
+.site-header nav a:hover,
+.site-header nav a:focus-visible { border-color: currentColor; }
+.nav-index { opacity: 0.58; }
+
+.hero {
+  position: relative;
+  height: 100svh;
+  min-height: 640px;
+  overflow: hidden;
+  background: var(--klein);
+  color: #f8f6ef;
+}
+
+.hero-image {
+  object-fit: cover;
+  object-position: center;
+  transform: scale(1.01);
+  animation: hero-in 1.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.hero-shade {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, rgba(0, 0, 0, 0.28), transparent 28%),
+    linear-gradient(0deg, rgba(0, 0, 0, 0.38), transparent 42%);
+}
+
+@keyframes hero-in {
+  from { opacity: 0; transform: scale(1.07); }
+  to { opacity: 1; transform: scale(1.01); }
+}
+
+.hero-kicker,
+.hero-counter,
+.enter-series,
+.eyebrow,
+.archive-meta,
+.month-header,
+.work-caption,
+.year-column > span,
+.next-month,
+.about-aside,
+footer,
+.lightbox-caption {
+  font-size: 0.66rem;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+
+.hero-kicker {
+  position: absolute;
+  top: 95px;
+  left: 28px;
+  margin: 0;
+  writing-mode: vertical-rl;
+}
+
+.hero-title-wrap {
+  position: absolute;
+  z-index: 1;
+  left: 27px;
+  bottom: 28px;
+}
+
+.hero-title-wrap h1 {
+  margin: 0 0 -0.03em;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(5.2rem, 16.3vw, 15.5rem);
+  font-weight: 400;
+  line-height: 0.72;
+  letter-spacing: -0.075em;
+}
+
+.hero-title-wrap > p {
+  margin: 24px 0 0 5px;
+  font-family: Georgia, "Times New Roman", "Songti SC", serif;
+  font-size: clamp(0.9rem, 1.2vw, 1.12rem);
+  letter-spacing: 0.08em;
+}
+
+.hero-quote {
+  position: absolute;
+  z-index: 1;
+  top: 39%;
+  left: 39%;
+  max-width: 430px;
+  margin: 0;
+  color: #f8f6ef;
+  font-family: Georgia, "Times New Roman", serif;
+}
+
+.hero-quote p {
+  margin: 0;
+  font-size: clamp(1.25rem, 2.1vw, 2rem);
+  line-height: 1.35;
+  letter-spacing: -0.025em;
+}
+
+.hero-quote cite {
+  display: block;
+  margin-top: 18px;
+  font-family: Arial, "Helvetica Neue", sans-serif;
+  font-size: 0.62rem;
+  font-style: normal;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.enter-series {
+  position: absolute;
+  z-index: 1;
+  right: 28px;
+  bottom: 28px;
+  display: flex;
+  gap: 48px;
+  align-items: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.62);
+  padding-bottom: 7px;
+}
+
+.hero-counter {
+  position: absolute;
+  right: 28px;
+  top: 50%;
+  margin: 0;
+  transform: rotate(90deg) translateX(50%);
+  transform-origin: right center;
+}
+
+.archive-intro {
+  display: grid;
+  grid-template-columns: 1.25fr 0.75fr;
+  min-height: 76vh;
+  padding: 150px 4vw 120px;
+  border-bottom: 1px solid var(--line);
+}
+
+.eyebrow { margin: 0 0 54px; }
+
+.archive-intro h2 {
+  margin: 0;
+  font-family: Georgia, "Times New Roman", "Songti SC", serif;
+  font-size: clamp(3.8rem, 7.8vw, 8.4rem);
+  font-weight: 400;
+  line-height: 0.96;
+  letter-spacing: -0.075em;
+}
+
+.archive-note {
+  align-self: end;
+  max-width: 520px;
+  padding: 0 1vw 9px 4vw;
+}
+
+.archive-note > p:first-child {
+  margin: 0 0 64px;
+  font-family: Georgia, "Times New Roman", "Songti SC", serif;
+  font-size: clamp(1.2rem, 1.8vw, 1.65rem);
+  line-height: 1.85;
+}
+
+.archive-meta { margin: 0; opacity: 0.58; }
+
+.year-archive {
+  display: grid;
+  grid-template-columns: 25vw 1fr;
+  gap: 4vw;
+  padding: 140px 4vw 15vw;
+}
+
+.year-column { align-self: stretch; }
+
+.year-column h2 {
+  position: sticky;
+  top: 32px;
+  margin: 0;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(5.6rem, 12vw, 12rem);
+  font-weight: 400;
+  line-height: 0.75;
+  letter-spacing: -0.08em;
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+}
+
+.year-column > span {
+  display: block;
+  margin-top: 32px;
+  color: var(--muted);
+}
+
+.year-content { min-width: 0; }
+
+.month-header {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 30px;
+  align-items: end;
+  padding: 0 0 26px;
+  border-bottom: 1px solid var(--ink);
+}
+
+.month-header p { margin: 12px 0 0; }
+.month-number {
+  display: block;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(6rem, 15vw, 15rem);
+  font-weight: 400;
+  line-height: 0.64;
+  letter-spacing: -0.08em;
+}
+
+.month-note {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.month-note p { max-width: 310px; line-height: 1.65; }
+.month-note span { opacity: 0.52; white-space: nowrap; }
+
+.works { padding: 0 0 11vw; overflow: hidden; }
+.work { position: relative; margin-top: 12vw; }
+.work-1 { width: 76%; }
+.work-2 { width: 63%; margin-left: auto; }
+.work-3 { width: 84%; margin-left: 3%; }
+
+.photo-button {
+  position: relative;
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: #171715;
+  cursor: zoom-in;
+  overflow: hidden;
+}
+
+.photo-frame {
+  position: relative;
+  display: block;
+  width: 100%;
+  aspect-ratio: 3 / 4;
+}
+
+.photo-frame img {
+  object-fit: cover;
+  transition: transform 800ms cubic-bezier(0.22, 1, 0.36, 1), filter 400ms ease;
+}
+
+.photo-button:hover .photo-frame img,
+.photo-button:focus-visible .photo-frame img {
+  transform: scale(1.018);
+  filter: contrast(1.06);
+}
+
+.photo-button:focus-visible { outline: 2px solid var(--ink); outline-offset: 5px; }
+
+.view-cue {
+  position: absolute;
+  inset: auto 12px 12px auto;
+  display: grid;
+  place-items: center;
+  width: 76px;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: rgba(245, 244, 239, 0.96);
+  color: var(--ink);
+  font-size: 0.58rem;
+  letter-spacing: 0.1em;
+  opacity: 0;
+  transform: scale(0.75);
+  transition: opacity 250ms ease, transform 400ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.photo-button:hover .view-cue,
+.photo-button:focus-visible .view-cue { opacity: 1; transform: scale(1); }
+
+.work-caption {
+  display: grid;
+  grid-template-columns: 56px 1fr auto;
+  gap: 18px;
+  padding-top: 14px;
+  border-top: 1px solid var(--ink);
+  margin-top: 10px;
+}
+
+.work-caption h3,
+.work-caption p { margin: 0; font-size: inherit; font-weight: 400; }
+.work-caption p { margin-top: 5px; opacity: 0.48; }
+
+.next-month {
+  display: grid;
+  grid-template-columns: 1fr 2fr auto;
+  gap: 24px;
+  align-items: end;
+  padding: 34px 0 0;
+  border-top: 1px solid var(--ink);
+}
+
+.next-month p {
+  margin: 0;
+  font-family: Georgia, "Times New Roman", "Songti SC", serif;
+  font-size: clamp(1.5rem, 3vw, 3rem);
+  text-transform: none;
+  letter-spacing: -0.035em;
+}
+
+.about {
+  display: grid;
+  grid-template-columns: 0.55fr 1.7fr 0.75fr;
+  gap: 4vw;
+  padding: 140px 4vw 180px;
+  background: var(--ink);
+  color: var(--paper);
+}
+
+.about-statement {
+  margin: 0;
+  max-width: 900px;
+  font-family: Georgia, "Times New Roman", "Songti SC", serif;
+  font-size: clamp(2rem, 4vw, 4.4rem);
+  line-height: 1.35;
+  letter-spacing: -0.045em;
+}
+
+.about-aside {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 10px;
+  opacity: 0.6;
+}
+
+footer {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 40px;
+  align-items: end;
+  padding: 40px 4vw 32px;
+  background: var(--ink);
+  color: var(--paper);
+  border-top: 1px solid rgba(239, 237, 231, 0.22);
+}
+
+footer p { margin: 4px 0 0; }
+footer > a:last-child { justify-self: end; }
+
+.footer-mark {
+  font-size: clamp(2.5rem, 6vw, 6rem);
+  font-weight: 800;
+  line-height: 0.78;
+  letter-spacing: -0.075em;
+}
+
+.lightbox {
+  position: fixed;
+  z-index: 200;
+  inset: 0;
+  background: var(--ink);
+  color: #efede7;
+  animation: reveal 260ms ease both;
+}
+
+@keyframes reveal { from { opacity: 0; } to { opacity: 1; } }
+
+.lightbox-image { position: absolute; inset: 34px 110px 64px; }
+.lightbox-image img { object-fit: contain; }
+
+.lightbox-close,
+.lightbox-prev,
+.lightbox-next {
+  position: absolute;
+  z-index: 2;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+
+.lightbox-close {
+  top: 24px;
+  right: 28px;
+  padding: 8px 0 8px 16px;
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.lightbox-prev,
+.lightbox-next { top: 50%; padding: 22px; font-size: 1.8rem; transform: translateY(-50%); }
+.lightbox-prev { left: 0; }
+.lightbox-next { right: 0; }
+
+.lightbox-caption {
+  position: absolute;
+  inset: auto 28px 20px;
+  display: grid;
+  grid-template-columns: 90px 1fr auto;
+  gap: 20px;
+}
+
+@media (max-width: 760px) {
+  .site-header { padding: 18px; }
+  .site-header nav { gap: 16px; }
+  .nav-index, .site-header nav a:last-of-type { display: none; }
+  .hero { min-height: 620px; }
+  .hero-image { object-position: 57% center; }
+  .hero-kicker { top: 82px; left: 18px; }
+  .hero-title-wrap { left: 17px; bottom: 68px; }
+  .hero-title-wrap h1 { font-size: 21vw; }
+  .hero-title-wrap > p { margin-top: 18px; font-size: 0.8rem; }
+  .hero-quote { top: 38%; left: 18px; right: 46px; }
+  .hero-quote p { font-size: 1.3rem; }
+  .enter-series { right: 18px; bottom: 20px; left: 18px; justify-content: space-between; }
+  .hero-counter { display: none; }
+
+  .archive-intro { grid-template-columns: 1fr; min-height: 0; padding: 92px 18px 100px; }
+  .eyebrow { margin-bottom: 36px; }
+  .archive-intro h2 { font-size: 14.5vw; }
+  .archive-note { padding: 80px 0 0 16vw; }
+  .archive-note > p:first-child { margin-bottom: 40px; font-size: 1.05rem; line-height: 1.9; }
+
+  .year-archive { display: block; padding: 90px 18px 110px; }
+  .year-column { display: grid; grid-template-columns: 1fr auto; align-items: end; margin-bottom: 100px; }
+  .year-column .eyebrow { grid-column: 1 / -1; }
+  .year-column h2 { position: static; font-size: 28vw; line-height: 0.65; writing-mode: initial; transform: none; }
+  .year-column > span { margin: 0; }
+  .month-header { grid-template-columns: 1fr; gap: 45px; }
+  .month-number { font-size: 32vw; }
+  .month-note { align-items: end; }
+
+  .works { padding-bottom: 120px; }
+  .work, .work-1, .work-2, .work-3 { width: 100%; margin: 92px 0 0; }
+  .work-2 { width: 86%; margin-left: 14%; }
+  .work-3 { width: 93%; }
+  .view-cue { opacity: 1; transform: scale(0.72); transform-origin: right bottom; }
+  .work-caption { grid-template-columns: 34px 1fr; }
+  .work-caption > span:last-child { display: none; }
+  .next-month { grid-template-columns: 1fr auto; }
+  .next-month p { grid-column: 1 / -1; grid-row: 2; }
+
+  .about { grid-template-columns: 1fr; padding: 88px 18px 110px; }
+  .about-statement { font-size: 2rem; line-height: 1.45; }
+  .about-aside { margin-top: 60px; }
+  footer { grid-template-columns: 1fr auto; padding: 34px 18px 28px; }
+  footer > div { display: none; }
+  .lightbox-image { inset: 60px 12px 82px; }
+  .lightbox-prev, .lightbox-next { top: auto; bottom: 22px; padding: 12px; transform: none; }
+  .lightbox-caption { inset: auto 62px 24px; grid-template-columns: 1fr; gap: 5px; text-align: center; }
+  .lightbox-caption span:last-child { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+    .hero > img { position:absolute; inset:0; width:100%; height:100%; }
+    .photo-frame img { position:absolute; inset:0; width:100%; height:100%; }
+    .lightbox { opacity:0; pointer-events:none; }
+    .lightbox.open { opacity:1; pointer-events:auto; }
   </style>
 </head>
-<body class="klein">
-  <div class="progress" aria-hidden="true"></div>
-  <header>
-    <a class="wordmark" href="#top" aria-label="返回首页">DOUZT<span class="dot">●</span></a>
-    <nav aria-label="主要导航"><a href="#series">作品</a><a href="#about">关于</a><button class="theme-toggle" type="button" aria-pressed="true" aria-label="切换为黑白底色"><span class="theme-label">B/W</span></button><span class="nav-index">001 / 001</span></nav>
+<body>
+  <div class="scroll-progress" aria-hidden="true"></div>
+  <header class="site-header">
+    <a class="wordmark" href="#top" aria-label="返回首页">DOUZT<span class="wordmark-dot">●</span></a>
+    <nav aria-label="主要导航"><a href="#archive">档案</a><a href="#about">关于</a><span class="nav-index">2026 / 08</span></nav>
   </header>
   <main>
     <section class="hero" id="top" aria-labelledby="hero-title">
-      <img src="room-03.jpg" alt="晾着衣物的幽深黑白走廊" fetchpriority="high">
-      <div class="shade"></div>
-      <p class="kicker">Independent photography archive · 2026</p>
-      <div class="hero-title"><h1 id="hero-title">ROOM</h1><p>房间，以及被光触碰过的日常。</p></div>
-      <a class="enter" href="#series"><span>观看系列</span><span aria-hidden="true">↓</span></a>
-      <p class="counter">SERIES 001</p>
+      <img class="hero-image" src="hero-film-blue.webp" alt="由胶片边框、齿孔、感光痕迹与颗粒组成的克莱因蓝抽象画面" fetchpriority="high">
+      <div class="hero-shade"></div>
+      <p class="hero-kicker">Independent film photography archive</p>
+      <blockquote class="hero-quote"><p>“You don’t take a photograph. You make it.”</p><cite>— Ansel Adams</cite></blockquote>
+      <div class="hero-title-wrap"><h1 id="hero-title">ARCHIVE</h1><p>黑白胶片摄影 · 按月保存</p></div>
+      <a class="enter-series" href="#archive"><span>进入档案</span><span aria-hidden="true">↓</span></a>
+      <p class="hero-counter">2026 — NOW</p>
     </section>
-    <section class="intro" id="series">
-      <div><p class="eyebrow">Series 001 / Room</p><h2>生活的内部<br>从不真正安静。</h2></div>
-      <div class="note"><p>我拍下那些通常不会被凝视的地方：一段走廊、窗边的手、略微倾斜的房间。物件保持沉默，光线替它们说话。</p><p class="meta">3 photographs · Black &amp; white · 2026</p></div>
+
+    <section class="archive-intro" id="archive">
+      <div><p class="eyebrow">Monthly Archive / 月度档案</p><h2>以月为单位，<br>保存每一次观看。</h2></div>
+      <div class="archive-note"><p>每个月是一卷独立的记录。日期不是注脚，而是照片与生活发生关系的坐标。</p><p class="archive-meta">1 month · 3 photographs · Black &amp; white film</p></div>
     </section>
-    <section class="works" aria-label="ROOM 系列摄影作品">
-      <article class="work"><button class="photo" data-index="0" aria-label="全屏查看：倾斜的房间"><img src="room-01.jpg" alt="倾斜视角下的黑白房间、帘子与生活用品" loading="lazy"><span class="view">VIEW →</span></button><div class="caption"><span>01</span><div><h3>倾斜的房间</h3><p>Room, tilted</p></div><span>DOUZT / 2026</span></div></article>
-      <article class="work"><button class="photo" data-index="1" aria-label="全屏查看：窗边的手势"><img src="room-02.jpg" alt="窗边一只扶着瓶子的手，墙上落着模糊树影" loading="lazy"><span class="view">VIEW →</span></button><div class="caption"><span>02</span><div><h3>窗边的手势</h3><p>A gesture by the window</p></div><span>DOUZT / 2026</span></div></article>
-      <article class="work"><button class="photo" data-index="2" aria-label="全屏查看：走廊还在延伸"><img src="room-03.jpg" alt="晾着衣物的幽深黑白走廊，尽头有一束光" loading="lazy"><span class="view">VIEW →</span></button><div class="caption"><span>03</span><div><h3>走廊还在延伸</h3><p>The corridor keeps going</p></div><span>DOUZT / 2026</span></div></article>
+
+    <section class="year-archive" aria-labelledby="year-2026">
+      <aside class="year-column"><p class="eyebrow">Year</p><h2 id="year-2026">2026</h2><span>01 month archived</span></aside>
+      <div class="year-content">
+        <section class="month" aria-labelledby="month-2026-08">
+          <header class="month-header">
+            <div><span class="month-number">08</span><p>August / 八月</p></div>
+            <div class="month-note"><p id="month-2026-08">房间，以及被光触碰过的日常。</p><span>3 photographs</span></div>
+          </header>
+          <div class="works" aria-label="2026 年 8 月摄影作品">
+            <article class="work work-1">
+              <button class="photo-button" type="button" data-index="0" aria-label="全屏查看：倾斜的房间"><span class="photo-frame"><img src="room-01.jpg" alt="倾斜视角下的黑白房间、帘子与生活用品" loading="lazy"></span><span class="view-cue">VIEW ↗</span></button>
+              <div class="work-caption"><span>01</span><div><h3>倾斜的房间</h3><p>Room, tilted</p></div><span>2026.08</span></div>
+            </article>
+            <article class="work work-2">
+              <button class="photo-button" type="button" data-index="1" aria-label="全屏查看：窗边的手势"><span class="photo-frame"><img src="room-02.jpg" alt="窗边一只扶着瓶子的手，墙上落着模糊树影" loading="lazy"></span><span class="view-cue">VIEW ↗</span></button>
+              <div class="work-caption"><span>02</span><div><h3>窗边的手势</h3><p>A gesture by the window</p></div><span>2026.08</span></div>
+            </article>
+            <article class="work work-3">
+              <button class="photo-button" type="button" data-index="2" aria-label="全屏查看：走廊还在延伸"><span class="photo-frame"><img src="room-03.jpg" alt="晾着衣物的幽深黑白走廊，尽头有一束光" loading="lazy"></span><span class="view-cue">VIEW ↗</span></button>
+              <div class="work-caption"><span>03</span><div><h3>走廊还在延伸</h3><p>The corridor keeps going</p></div><span>2026.08</span></div>
+            </article>
+          </div>
+        </section>
+        <div class="next-month" aria-label="下一月待更新"><span>Next month</span><p>下一卷，待冲洗。</p><span>— / 2026</span></div>
+      </div>
     </section>
-    <section class="about" id="about"><p class="eyebrow">About / 关于</p><p class="statement">DOUZT 用摄影保存不稳定的瞬间。关注日常空间、身体痕迹与自然光，相信普通生活里始终藏着值得停留的一帧。</p><div class="aside"><span>Based in China</span><span>Available light only</span><span>Black / White / In-between</span></div></section>
+
+    <section class="about" id="about">
+      <p class="eyebrow">About / 关于</p>
+      <p class="about-statement">DOUZT 用黑白胶片保存不稳定的瞬间。这里按年月归档日常空间、身体痕迹与自然光，让每一卷照片保留它发生时的温度。</p>
+      <div class="about-aside"><span>Based in China</span><span>Monthly archive</span><span>Black &amp; white film</span></div>
+    </section>
   </main>
-  <footer><a class="footer-mark" href="#top">DOUZT</a><div><p>Personal photography archive</p><p>© 2026 DOUZT</p></div><a href="https://douzt12.github.io/">douzt12.github.io →</a></footer>
-  <div class="lightbox" role="dialog" aria-modal="true" aria-label="全屏作品浏览" aria-hidden="true"><button class="close" aria-label="关闭全屏作品">关闭 ×</button><div class="lightbox-image"><img src="room-01.jpg" alt=""></div><div class="lightbox-caption"><span class="lb-number">01 / 03</span><span class="lb-zh">倾斜的房间</span><span class="lb-en">Room, tilted</span></div><button class="prev" aria-label="上一张">←</button><button class="next" aria-label="下一张">→</button></div>
+  <footer><a class="footer-mark" href="#top">DOUZT</a><div><p>Personal film photography archive</p><p>© 2026 DOUZT</p></div><a href="https://douzt12.github.io/">View archive ↗</a></footer>
+
+  <div class="lightbox" role="dialog" aria-modal="true" aria-label="全屏作品浏览" aria-hidden="true">
+    <button class="lightbox-close" type="button" aria-label="关闭全屏作品">关闭 ×</button>
+    <div class="lightbox-image"><img src="room-01.jpg" alt=""></div>
+    <div class="lightbox-caption"><span class="lb-number">01 / 03</span><span class="lb-title">倾斜的房间</span><span class="lb-date">2026.08</span></div>
+    <button class="lightbox-prev" type="button" aria-label="上一张">←</button><button class="lightbox-next" type="button" aria-label="下一张">→</button>
+  </div>
+
   <script>
-    const works=[
-      {src:'room-01.jpg',zh:'倾斜的房间',en:'Room, tilted',alt:'倾斜视角下的黑白房间、帘子与生活用品'},
-      {src:'room-02.jpg',zh:'窗边的手势',en:'A gesture by the window',alt:'窗边一只扶着瓶子的手，墙上落着模糊树影'},
-      {src:'room-03.jpg',zh:'走廊还在延伸',en:'The corridor keeps going',alt:'晾着衣物的幽深黑白走廊，尽头有一束光'}
+    const works = [
+      {src:'room-01.jpg', title:'倾斜的房间', alt:'倾斜视角下的黑白房间、帘子与生活用品'},
+      {src:'room-02.jpg', title:'窗边的手势', alt:'窗边一只扶着瓶子的手，墙上落着模糊树影'},
+      {src:'room-03.jpg', title:'走廊还在延伸', alt:'晾着衣物的幽深黑白走廊，尽头有一束光'}
     ];
-    const progress=document.querySelector('.progress');
-    const lightbox=document.querySelector('.lightbox');
-    const full=document.querySelector('.lightbox-image img');
-    const themeToggle=document.querySelector('.theme-toggle');
-    const themeLabel=document.querySelector('.theme-label');
-    const themeMeta=document.querySelector('meta[name="theme-color"]');
-    let current=0;
-    function setTheme(theme){const isKlein=theme==='klein';document.body.classList.toggle('klein',isKlein);themeToggle.setAttribute('aria-pressed',String(isKlein));themeToggle.setAttribute('aria-label',isKlein?'切换为黑白底色':'切换为克莱因蓝底色');themeLabel.textContent=isKlein?'B/W':'IKB';themeMeta.content=isKlein?'#002FA7':'#0A0A09'}
-    let savedTheme='klein';
-    try{savedTheme=localStorage.getItem('douzt-theme')||'klein'}catch{}
-    setTheme(savedTheme);
-    function updateProgress(){const range=document.documentElement.scrollHeight-innerHeight;progress.style.transform=`scaleX(${range>0?scrollY/range:0})`}
-    function show(index){current=(index+works.length)%works.length;const work=works[current];full.src=work.src;full.alt=work.alt;document.querySelector('.lb-number').textContent=`0${current+1} / 03`;document.querySelector('.lb-zh').textContent=work.zh;document.querySelector('.lb-en').textContent=work.en}
-    function openBox(index){show(index);lightbox.classList.add('open');lightbox.setAttribute('aria-hidden','false');document.body.classList.add('locked');document.querySelector('.close').focus()}
-    function closeBox(){lightbox.classList.remove('open');lightbox.setAttribute('aria-hidden','true');document.body.classList.remove('locked')}
-    addEventListener('scroll',updateProgress,{passive:true});updateProgress();
-    document.querySelectorAll('.photo').forEach(button=>button.addEventListener('click',()=>openBox(Number(button.dataset.index))));
-    document.querySelector('.close').addEventListener('click',closeBox);
-    document.querySelector('.prev').addEventListener('click',()=>show(current-1));
-    document.querySelector('.next').addEventListener('click',()=>show(current+1));
-    themeToggle.addEventListener('click',()=>{const next=document.body.classList.contains('klein')?'mono':'klein';setTheme(next);try{localStorage.setItem('douzt-theme',next)}catch{}});
+    const progress = document.querySelector('.scroll-progress');
+    const lightbox = document.querySelector('.lightbox');
+    const full = document.querySelector('.lightbox-image img');
+    let current = 0;
+    function updateProgress(){const range=document.documentElement.scrollHeight-innerHeight;progress.style.transform='scaleX('+(range>0?scrollY/range:0)+')'}
+    function show(index){current=(index+works.length)%works.length;const work=works[current];full.src=work.src;full.alt=work.alt;document.querySelector('.lb-number').textContent=String(current+1).padStart(2,'0')+' / 03';document.querySelector('.lb-title').textContent=work.title}
+    function openBox(index){show(index);lightbox.classList.add('open');lightbox.setAttribute('aria-hidden','false');document.body.style.overflow='hidden';document.querySelector('.lightbox-close').focus()}
+    function closeBox(){lightbox.classList.remove('open');lightbox.setAttribute('aria-hidden','true');document.body.style.overflow='';}
+    addEventListener('scroll',updateProgress,{passive:true}); updateProgress();
+    document.querySelectorAll('.photo-button').forEach(button=>button.addEventListener('click',()=>openBox(Number(button.dataset.index))));
+    document.querySelector('.lightbox-close').addEventListener('click',closeBox);
+    document.querySelector('.lightbox-prev').addEventListener('click',()=>show(current-1));
+    document.querySelector('.lightbox-next').addEventListener('click',()=>show(current+1));
     addEventListener('keydown',event=>{if(!lightbox.classList.contains('open'))return;if(event.key==='Escape')closeBox();if(event.key==='ArrowLeft')show(current-1);if(event.key==='ArrowRight')show(current+1)});
   </script>
 </body>
