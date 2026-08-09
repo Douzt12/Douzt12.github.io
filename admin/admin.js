@@ -4,6 +4,9 @@
   const ADMIN_EMAIL = "1766847587@qq.com";
   const BUCKET = "portfolio-photos";
   const SESSION_KEY = "douzt-admin-session";
+  const DRAFT_KEY = "douzt-admin-content-draft";
+  const RICH_TEXT_PREFIX = "__douzt_rich__:";
+  const HERO_SOURCES_PREFIX = "__douzt_hero__:";
   const config = window.DOUZT_GUESTBOOK_CONFIG || {};
   const supabaseUrl = String(config.supabaseUrl || "").replace(/\/$/, "");
   const publishableKey = String(config.supabasePublishableKey || "");
@@ -16,6 +19,8 @@
     messages: [],
     settings: null,
     selectedAlbumId: null,
+    draft: [],
+    activeTextElement: null,
   };
 
   const $ = (selector) => document.querySelector(selector);
@@ -42,6 +47,114 @@
     node.hidden = false;
     window.clearTimeout(toast.timer);
     toast.timer = window.setTimeout(() => { node.hidden = true; }, 2600);
+  }
+
+  function openAdminLightbox(source, alt = "摄影作品") {
+    $("#admin-lightbox-image").src = source;
+    $("#admin-lightbox-image").alt = alt;
+    $("#admin-lightbox").hidden = false;
+    document.body.style.overflow = "hidden";
+    $("#close-admin-lightbox").focus();
+  }
+
+  function closeAdminLightbox() {
+    $("#admin-lightbox").hidden = true;
+    $("#admin-lightbox-image").src = "";
+    document.body.style.overflow = "";
+  }
+
+  function unpackRichValue(value, fallback = "") {
+    const source = value == null || value === "" ? fallback : String(value);
+    if (!source.startsWith(RICH_TEXT_PREFIX)) return { text: source, style: {} };
+    try {
+      const parsed = JSON.parse(source.slice(RICH_TEXT_PREFIX.length));
+      return { text: String(parsed.text || fallback), style: parsed.style && typeof parsed.style === "object" ? parsed.style : {} };
+    } catch { return { text: source, style: {} }; }
+  }
+
+  function normalizeRichStyle(style = {}) {
+    const result = {};
+    const size = Number(style.fontSize);
+    if (Number.isFinite(size) && size >= 10 && size <= 96) result.fontSize = size;
+    if (style.bold) result.bold = true;
+    if (style.italic) result.italic = true;
+    if (["left", "center", "right"].includes(style.align)) result.align = style.align;
+    return result;
+  }
+
+  function packRichValue(text, style = {}) {
+    const cleanStyle = normalizeRichStyle(style);
+    if (!Object.keys(cleanStyle).length) return String(text || "").trim();
+    return `${RICH_TEXT_PREFIX}${JSON.stringify({ text: String(text || "").trim(), style: cleanStyle })}`;
+  }
+
+  function unpackHeroSources(value) {
+    const source = String(value || "");
+    const fallback = { bw: "hero-pavilion-square.png", color: "hero-pavilion-color.jpg" };
+    if (!source.startsWith(HERO_SOURCES_PREFIX)) return { ...fallback, bw: source || fallback.bw };
+    try {
+      const parsed = JSON.parse(source.slice(HERO_SOURCES_PREFIX.length));
+      return { bw: String(parsed.bw || fallback.bw), color: String(parsed.color || fallback.color) };
+    } catch { return fallback; }
+  }
+
+  function packHeroSources(sources) {
+    return `${HERO_SOURCES_PREFIX}${JSON.stringify({ bw: sources.bw, color: sources.color })}`;
+  }
+
+  function applyRichStyle(element, style = {}) {
+    const clean = normalizeRichStyle(style);
+    element.style.fontSize = clean.fontSize ? `${clean.fontSize}px` : "";
+    element.style.fontWeight = clean.bold ? "700" : "";
+    element.style.fontStyle = clean.italic ? "italic" : "";
+    element.style.textAlign = clean.align || "";
+    element._douztStyle = clean;
+  }
+
+  function draftLabel() {
+    const count = state.draft.length;
+    const label = $("#draft-state");
+    label.textContent = count ? `${count} 项修改等待确认` : "没有待提交修改";
+    label.parentElement.classList.toggle("dirty", Boolean(count));
+    $("#publish-draft").disabled = !count;
+  }
+
+  function queueOperation(operation) {
+    if (["settingPatch", "albumPatch", "photoPatch"].includes(operation.type)) {
+      const existing = state.draft.find((item) => item.type === operation.type && String(item.id || "main") === String(operation.id || "main"));
+      if (existing) {
+        existing.patch = { ...existing.patch, ...operation.patch };
+        if (operation.cleanupPath) existing.cleanupPath = operation.cleanupPath;
+        draftLabel();
+        return existing;
+      }
+    }
+    state.draft.push(operation);
+    draftLabel();
+    return operation;
+  }
+
+  function applyDraftToState() {
+    for (const operation of state.draft) {
+      if (operation.type === "settingPatch") {
+        state.settings = { id: "main", ...(state.settings || {}), ...operation.patch };
+      }
+      if (operation.type === "albumPatch") Object.assign(state.albums.find((item) => String(item.id) === String(operation.id)) || {}, operation.patch);
+      if (operation.type === "photoPatch") Object.assign(state.photos.find((item) => String(item.id) === String(operation.id)) || {}, operation.patch);
+      if (operation.type === "albumInsert" && !state.albums.some((item) => String(item.id) === String(operation.tempId))) state.albums.push({ id: operation.tempId, ...operation.payload });
+      if (operation.type === "photoInsert" && !state.photos.some((item) => String(item.id) === String(operation.tempId))) state.photos.push({ id: operation.tempId, ...operation.payload });
+      if (operation.type === "photoDelete") state.photos = state.photos.filter((item) => String(item.id) !== String(operation.id));
+      if (operation.type === "albumDelete") {
+        state.albums = state.albums.filter((item) => String(item.id) !== String(operation.id));
+        state.photos = state.photos.filter((item) => String(item.album_id) !== String(operation.id));
+      }
+    }
+  }
+
+  function saveDraftLocally(showNotice = true) {
+    if (state.draft.length) localStorage.setItem(DRAFT_KEY, JSON.stringify(state.draft));
+    else localStorage.removeItem(DRAFT_KEY);
+    if (showNotice) toast(state.draft.length ? "草稿已保存在这台设备。" : "当前没有需要保存的草稿。");
   }
 
   function publicHeaders(extra = {}) {
@@ -152,7 +265,7 @@
   }
 
   function albumLabel(album) {
-    return `${album.year} / ${String(album.month).padStart(2, "0")} · ${album.title_zh || monthNamesZh[album.month - 1]}`;
+    return `${(album.collection || "bw") === "color" ? "彩色" : "黑白"} · ${album.year} / ${String(album.month).padStart(2, "0")} · ${unpackRichValue(album.title_zh || monthNamesZh[album.month - 1]).text}`;
   }
 
   function populateAlbumSelects() {
@@ -209,9 +322,8 @@
 
   function fillSettings() {
     const settings = state.settings || {};
-    $("#setting-quote").value = settings.quote_text || "The image itself has not changed.";
-    $("#setting-author").value = settings.quote_author || "Donald Alexander Sheff";
-    $("#setting-about").value = settings.about_text || "独立黑白胶片摄影档案。每个月是一卷独立的观看记录。";
+    $("#setting-quote").value = unpackRichValue(settings.quote_text, "The image itself has not changed.").text;
+    $("#setting-author").value = unpackRichValue(settings.quote_author, "Donald Alexander Sheff").text;
     $("#setting-hero-url").value = settings.hero_image_url || "";
   }
 
@@ -222,10 +334,11 @@
       rest("site_settings?select=*&id=eq.main&limit=1"),
       rest("guestbook_messages?select=id,name,message,created_at&order=created_at.desc&limit=100"),
     ]);
-    state.albums = albums || [];
+    state.albums = (albums || []).map((album) => ({ ...album, collection: album.collection || "bw" }));
     state.photos = photos || [];
     state.settings = settings?.[0] || null;
     state.messages = messages || [];
+    applyDraftToState();
     renderAlbums();
     renderPhotos();
     renderMessages();
@@ -275,7 +388,12 @@
   function previewAlbum(doc) {
     const text = doc.querySelector(".month-bar h3")?.textContent || "";
     const match = text.match(/(\d{4})\s*\/\s*(\d{1,2})/);
-    return match && state.albums.find((item) => Number(item.year) === Number(match[1]) && Number(item.month) === Number(match[2]));
+    const collection = previewCollection(doc);
+    return match && state.albums.find((item) => (item.collection || "bw") === collection && Number(item.year) === Number(match[1]) && Number(item.month) === Number(match[2]));
+  }
+
+  function previewCollection(doc = $("#public-preview").contentDocument) {
+    return doc?.documentElement?.dataset?.theme === "color" ? "color" : "bw";
   }
 
   function albumPhotos(albumId) {
@@ -287,47 +405,86 @@
       await rest("site_settings?id=eq.main", { method: "PATCH", body: patch, prefer: "return=minimal" });
       Object.assign(state.settings, patch);
     } else {
-      const payload = { id: "main", quote_text: "The image itself has not changed.", quote_author: "Donald Alexander Sheff", about_text: "独立黑白胶片摄影档案。每个月是一卷独立的观看记录。", hero_image_url: "", ...patch };
+      const payload = { id: "main", quote_text: "The image itself has not changed.", quote_author: "Donald Alexander Sheff", about_text: "", hero_image_url: "", ...patch };
       await rest("site_settings", { method: "POST", body: payload, prefer: "return=minimal" });
       state.settings = payload;
     }
     fillSettings();
   }
 
-  async function saveInlineText(element) {
-    if (element.dataset.saving === "true") return;
+  function storedInlineValue(field, id) {
+    if (field === "quote_text" || field === "quote_author") return state.settings?.[field] || "";
+    if (field === "album_description") return state.albums.find((item) => String(item.id) === String(id))?.description || "";
+    if (field === "album_titles") return state.albums.find((item) => String(item.id) === String(id))?.title_en || "";
+    if (field === "photo_title_zh") return state.photos.find((item) => String(item.id) === String(id))?.title_zh || "";
+    if (field === "photo_title_en") return state.photos.find((item) => String(item.id) === String(id))?.title_en || "";
+    return "";
+  }
+
+  function saveInlineText(element) {
     const field = element.dataset.inlineField;
     const id = Number(element.dataset.recordId || 0);
     const value = element.innerText.replace(/\s+/g, " ").trim();
-    if (!value) return refreshPreview();
-    element.dataset.saving = "true";
-    element.classList.add("admin-saving");
-    try {
-      if (field === "quote_text") await saveSettingsPatch({ quote_text: value });
-      if (field === "quote_author") await saveSettingsPatch({ quote_author: value.replace(/^[—–-]+\s*/, "") });
-      if (field === "about_text") await saveSettingsPatch({ about_text: value });
-      if (field === "album_description") {
-        await rest(`portfolio_albums?id=eq.${id}`, { method: "PATCH", body: { description: value }, prefer: "return=minimal" });
-        Object.assign(state.albums.find((item) => item.id === id) || {}, { description: value });
-      }
-      if (field === "album_titles") {
-        const parts = value.split("·").map((part) => part.trim()).filter(Boolean);
-        const album = state.albums.find((item) => item.id === id);
-        const patch = { title_en: parts.length > 1 ? parts[0] : album?.title_en || "", title_zh: parts.length > 1 ? parts.slice(1).join(" · ") : parts[0] };
-        await rest(`portfolio_albums?id=eq.${id}`, { method: "PATCH", body: patch, prefer: "return=minimal" });
-        Object.assign(album || {}, patch);
-      }
-      if (field === "photo_title_zh" || field === "photo_title_en") {
-        const column = field === "photo_title_zh" ? "title_zh" : "title_en";
-        await rest(`portfolio_photos?id=eq.${id}`, { method: "PATCH", body: { [column]: value }, prefer: "return=minimal" });
-        Object.assign(state.photos.find((item) => item.id === id) || {}, { [column]: value });
-      }
-      toast("已自动保存。");
-      refreshPreview();
-    } catch (error) {
-      toast(`保存失败：${error.message}`);
-      refreshPreview();
+    if (!value) return;
+    const style = normalizeRichStyle(element._douztStyle || {});
+    if (field === "quote_text" || field === "quote_author") {
+      const text = field === "quote_author" ? value.replace(/^[——-]+\s*/, "") : value;
+      const packed = packRichValue(text, style);
+      state.settings = { id: "main", ...(state.settings || {}), [field]: packed };
+      queueOperation({ type: "settingPatch", patch: { [field]: packed } });
     }
+    if (field === "album_description") {
+      const packed = packRichValue(value, style);
+      Object.assign(state.albums.find((item) => item.id === id) || {}, { description: packed });
+      queueOperation({ type: "albumPatch", id, patch: { description: packed } });
+    }
+    if (field === "album_titles") {
+      const parts = value.split("·").map((part) => part.trim()).filter(Boolean);
+      const album = state.albums.find((item) => item.id === id);
+      const patch = {
+        title_en: packRichValue(parts.length > 1 ? parts[0] : unpackRichValue(album?.title_en).text, style),
+        title_zh: packRichValue(parts.length > 1 ? parts.slice(1).join(" · ") : parts[0], style),
+      };
+      Object.assign(album || {}, patch);
+      queueOperation({ type: "albumPatch", id, patch });
+    }
+    if (field === "photo_title_zh" || field === "photo_title_en") {
+      const column = field === "photo_title_zh" ? "title_zh" : "title_en";
+      const packed = packRichValue(value, style);
+      Object.assign(state.photos.find((item) => item.id === id) || {}, { [column]: packed });
+      queueOperation({ type: "photoPatch", id, patch: { [column]: packed } });
+    }
+    element.classList.add("admin-draft-change");
+    toast("修改已加入草稿，完成后请点击“确定修改”。");
+  }
+
+  function updateTextToolbar() {
+    const toolbar = $("#text-toolbar");
+    const element = state.activeTextElement;
+    toolbar.hidden = !element;
+    if (!element) return;
+    const style = normalizeRichStyle(element._douztStyle || {});
+    $("#text-font-size").value = style.fontSize ? String(style.fontSize) : "";
+    toolbar.querySelector('[data-text-format="bold"]').classList.toggle("active", Boolean(style.bold));
+    toolbar.querySelector('[data-text-format="italic"]').classList.toggle("active", Boolean(style.italic));
+    toolbar.querySelectorAll("[data-text-align]").forEach((button) => button.classList.toggle("active", button.dataset.textAlign === style.align));
+  }
+
+  function activateTextEditor(element) {
+    state.activeTextElement = element;
+    updateTextToolbar();
+  }
+
+  function applyTextFormat(change) {
+    const element = state.activeTextElement;
+    if (!element) return toast("请先点击要修改的文字。");
+    const style = { ...normalizeRichStyle(element._douztStyle || {}), ...change };
+    if (change.bold === "toggle") style.bold = !normalizeRichStyle(element._douztStyle || {}).bold;
+    if (change.italic === "toggle") style.italic = !normalizeRichStyle(element._douztStyle || {}).italic;
+    if (!style.fontSize) delete style.fontSize;
+    applyRichStyle(element, style);
+    saveInlineText(element);
+    updateTextToolbar();
   }
 
   async function chooseReplacement(kind, recordId) {
@@ -344,27 +501,35 @@
         if (kind === "hero") {
           const path = `site/${safeFileName(file.name)}.${extension}`;
           const imageUrl = await uploadObject(file, path);
-          await saveSettingsPatch({ hero_image_url: imageUrl });
+          const collection = previewCollection();
+          const heroSources = unpackHeroSources(state.settings?.hero_image_url);
+          heroSources[collection] = imageUrl;
+          const packedSources = packHeroSources(heroSources);
+          state.settings = { id: "main", ...(state.settings || {}), hero_image_url: packedSources };
+          queueOperation({ type: "settingPatch", patch: { hero_image_url: packedSources } });
+          const hero = $("#public-preview").contentDocument?.querySelector("#hero-image");
+          if (hero) hero.src = imageUrl;
         } else {
           const photo = state.photos.find((item) => item.id === Number(recordId));
           const album = photo && state.albums.find((item) => item.id === photo.album_id);
           if (!photo || !album) throw new Error("没有找到这张照片的记录。");
-          const path = `${album.year}/${String(album.month).padStart(2, "0")}/${safeFileName(file.name)}.${extension}`;
+          const path = `${album.collection || "bw"}/${album.year}/${String(album.month).padStart(2, "0")}/${safeFileName(file.name)}.${extension}`;
           const imageUrl = await uploadObject(file, path);
           const oldPath = photo.storage_path;
-          await rest(`portfolio_photos?id=eq.${photo.id}`, { method: "PATCH", body: { image_url: imageUrl, storage_path: path }, prefer: "return=minimal" });
           Object.assign(photo, { image_url: imageUrl, storage_path: path });
-          await deleteObject(oldPath);
+          queueOperation({ type: "photoPatch", id: photo.id, patch: { image_url: imageUrl, storage_path: path }, cleanupPath: oldPath });
+          const image = $("#public-preview").contentDocument?.querySelector(`[data-photo-id="${photo.id}"]`)?.closest(".photo-card")?.querySelector(".photo-frame img");
+          if (image) image.src = imageUrl;
         }
-        toast("图片已替换并自动保存。");
-        refreshPreview();
+        toast("图片替换已加入草稿，完成后请点击“确定修改”。");
       } catch (error) { toast(`图片替换失败：${error.message}`); }
     }, { once: true });
     input.click();
   }
 
   function openQuickAlbum() {
-    const latest = state.albums.reduce((best, album) => !best || Number(`${album.year}${String(album.month).padStart(2, "0")}`) > Number(`${best.year}${String(best.month).padStart(2, "0")}`) ? album : best, null);
+    const collection = previewCollection();
+    const latest = state.albums.filter((album) => (album.collection || "bw") === collection).reduce((best, album) => !best || Number(`${album.year}${String(album.month).padStart(2, "0")}`) > Number(`${best.year}${String(best.month).padStart(2, "0")}`) ? album : best, null);
     let year = latest?.year || 2026;
     let month = (latest?.month || 7) + 1;
     if (month > 12) { year += 1; month = 1; }
@@ -396,13 +561,24 @@
           const original = files[index];
           const file = await prepareWebImage(original);
           const extension = file.type === "image/png" ? "png" : file.type === "image/webp" ? "webp" : "jpg";
-          const path = `${album.year}/${String(album.month).padStart(2, "0")}/${safeFileName(file.name)}.${extension}`;
+          const path = `${album.collection || "bw"}/${album.year}/${String(album.month).padStart(2, "0")}/${safeFileName(file.name)}.${extension}`;
           const imageUrl = await uploadObject(file, path);
-          await rest("portfolio_photos", { method: "POST", body: { album_id: album.id, storage_path: path, image_url: imageUrl, title_zh: original.name.replace(/\.[^.]+$/, ""), title_en: "", alt_text: "黑白摄影作品", published: true, sort_order: sortOrder }, prefer: "return=minimal" });
+          const tempId = -(Date.now() + index + 1);
+          const payload = { album_id: album.id, storage_path: path, image_url: imageUrl, title_zh: original.name.replace(/\.[^.]+$/, ""), title_en: "", alt_text: (album.collection || "bw") === "color" ? "彩色摄影作品" : "黑白摄影作品", published: true, sort_order: sortOrder };
+          state.photos.push({ id: tempId, ...payload });
+          queueOperation({ type: "photoInsert", tempId, payload });
+          const previewDoc = $("#public-preview").contentDocument;
+          const grid = previewDoc?.querySelector("#gallery-grid");
+          if (grid) {
+            const card = previewDoc.createElement("article");
+            card.className = "photo-card";
+            card.innerHTML = `<button type="button" class="photo-button"><span class="photo-frame"><img src="${escapeHtml(imageUrl)}" alt="${escapeHtml(payload.alt_text)}"></span><span class="view-cue">查看大图</span></button><div class="photo-info"><div><h4>${escapeHtml(payload.title_zh)}</h4><p>Untitled</p></div><span>${String(sortOrder).padStart(2, "0")}</span></div>`;
+            grid.appendChild(card);
+          }
           sortOrder += 1;
         }
-        toast(`${files.length} 张照片已上传并保存。`);
-        await loadAll();
+        renderPhotos();
+        toast(`${files.length} 张照片已加入草稿，确认修改后发布。`);
       } catch (error) { toast(`上传失败：${error.message}`); }
     }, { once: true });
     input.click();
@@ -415,30 +591,50 @@
     const index = photos.findIndex((item) => item.id === photo.id);
     const other = photos[index + direction];
     if (!other) return toast(direction < 0 ? "已经是第一张。" : "已经是最后一张。");
-    await Promise.all([
-      rest(`portfolio_photos?id=eq.${photo.id}`, { method: "PATCH", body: { sort_order: other.sort_order }, prefer: "return=minimal" }),
-      rest(`portfolio_photos?id=eq.${other.id}`, { method: "PATCH", body: { sort_order: photo.sort_order }, prefer: "return=minimal" }),
-    ]);
-    toast("照片顺序已保存。");
-    await loadAll();
+    const currentOrder = photo.sort_order;
+    photo.sort_order = other.sort_order;
+    other.sort_order = currentOrder;
+    queueOperation({ type: "photoPatch", id: photo.id, patch: { sort_order: photo.sort_order } });
+    queueOperation({ type: "photoPatch", id: other.id, patch: { sort_order: other.sort_order } });
+    const doc = $("#public-preview").contentDocument;
+    const card = doc?.querySelector(`[data-photo-id="${photo.id}"]`)?.closest(".photo-card");
+    const otherCard = doc?.querySelector(`[data-photo-id="${other.id}"]`)?.closest(".photo-card");
+    if (card && otherCard) {
+      if (direction < 0) otherCard.before(card);
+      else otherCard.after(card);
+    }
+    toast("照片顺序已加入草稿。");
   }
 
   async function deleteInlinePhoto(id) {
     const photo = state.photos.find((item) => item.id === Number(id));
     if (!photo || !confirm(`确定删除“${photo.title_zh || "这张照片"}”吗？`)) return;
-    await deleteObject(photo.storage_path);
-    await rest(`portfolio_photos?id=eq.${photo.id}`, { method: "DELETE", prefer: "return=minimal" });
-    toast("照片已删除。");
-    await loadAll();
+    if (Number(photo.id) < 0) {
+      state.draft = state.draft.filter((item) => !(item.type === "photoInsert" && String(item.tempId) === String(photo.id)));
+      await deleteObject(photo.storage_path);
+    } else {
+      queueOperation({ type: "photoDelete", id: photo.id, storagePath: photo.storage_path });
+    }
+    state.photos = state.photos.filter((item) => String(item.id) !== String(photo.id));
+    $("#public-preview").contentDocument?.querySelector(`[data-photo-id="${photo.id}"]`)?.closest(".photo-card")?.remove();
+    draftLabel();
+    toast("删除已加入草稿，确认修改后生效。");
   }
 
   async function deleteInlineAlbum(id) {
     const album = state.albums.find((item) => item.id === Number(id));
     if (!album || !confirm(`确定删除 ${albumLabel(album)} 和其中全部照片吗？`)) return;
-    for (const photo of state.photos.filter((item) => item.album_id === album.id)) await deleteObject(photo.storage_path);
-    await rest(`portfolio_albums?id=eq.${album.id}`, { method: "DELETE", prefer: "return=minimal" });
-    toast("这个月份已删除。");
-    await loadAll();
+    const photos = state.photos.filter((item) => String(item.album_id) === String(album.id));
+    if (Number(album.id) < 0) {
+      state.draft = state.draft.filter((item) => !(item.type === "albumInsert" && String(item.tempId) === String(album.id)) && !(item.type === "photoInsert" && String(item.payload?.album_id) === String(album.id)));
+      for (const photo of photos) await deleteObject(photo.storage_path);
+    } else {
+      queueOperation({ type: "albumDelete", id: album.id, storagePaths: photos.map((photo) => photo.storage_path).filter(Boolean) });
+    }
+    state.albums = state.albums.filter((item) => String(item.id) !== String(album.id));
+    state.photos = state.photos.filter((item) => String(item.album_id) !== String(album.id));
+    draftLabel();
+    toast("月份删除已加入草稿，确认修改后生效。");
   }
 
   function bindVisualPreview() {
@@ -447,7 +643,7 @@
     try { doc = frame.contentDocument; } catch { return; }
     if (!doc?.body) return;
     const style = doc.createElement("style");
-    style.textContent = `[data-inline-field]{cursor:text;border-radius:4px;transition:outline-color .16s ease,background .16s ease}[data-inline-field]:hover{outline:2px dashed #0969da;outline-offset:4px}[data-inline-field]:focus{outline:3px solid #0969da;outline-offset:5px;background:#ddf4ff}.admin-image-edit{cursor:pointer!important;transition:outline-color .16s ease}.admin-image-edit:hover{outline:3px solid #0969da;outline-offset:-3px}.admin-saving{opacity:.55}.photo-card,.month-bar{position:relative}.admin-photo-tools,.admin-month-tools{position:absolute;z-index:9;display:flex;gap:4px;padding:5px;background:rgba(31,35,40,.9);border-radius:7px;box-shadow:0 6px 18px rgba(31,35,40,.18)}.admin-photo-tools{top:9px;right:9px}.admin-month-tools{right:12px;bottom:10px}.admin-photo-tools button,.admin-month-tools button{padding:5px 7px;color:#fff;background:transparent;border:1px solid rgba(255,255,255,.35);border-radius:5px;font:600 11px -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;cursor:pointer}.admin-photo-tools button:hover,.admin-month-tools button:hover{background:#0969da}.lightbox{display:none!important}`;
+    style.textContent = `[data-inline-field]{cursor:text;border-radius:4px;transition:outline-color .16s ease,background .16s ease}[data-inline-field]:hover{outline:2px dashed #0969da;outline-offset:4px}[data-inline-field]:focus{outline:3px solid #0969da;outline-offset:5px;background:#ddf4ff}.admin-image-edit{cursor:pointer!important;transition:outline-color .16s ease}.admin-image-edit:hover{outline:3px solid #0969da;outline-offset:-3px}.admin-draft-change{outline:3px solid #bf8700!important;outline-offset:4px}.photo-card,.month-bar{position:relative}.admin-photo-tools,.admin-month-tools{position:absolute;z-index:9;display:flex;gap:4px;padding:5px;background:rgba(31,35,40,.9);border-radius:7px;box-shadow:0 6px 18px rgba(31,35,40,.18)}.admin-photo-tools{top:9px;right:9px}.admin-month-tools{right:12px;bottom:10px}.admin-photo-tools button,.admin-month-tools button{padding:5px 7px;color:#fff;background:transparent;border:1px solid rgba(255,255,255,.35);border-radius:5px;font:600 11px -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;cursor:pointer}.admin-photo-tools button:hover,.admin-month-tools button:hover{background:#0969da}`;
     doc.head.appendChild(style);
     let heightFrame = 0;
     const syncPreviewHeight = () => {
@@ -463,7 +659,6 @@
       const fields = [
         [doc.querySelector("#hero-title"), "quote_text", ""],
         [doc.querySelector("#quote-credit"), "quote_author", ""],
-        [doc.querySelector("#about-description"), "about_text", ""],
         [doc.querySelector("#month-description"), "album_description", album?.id],
         [doc.querySelector("#month-name"), "album_titles", album?.id],
       ];
@@ -473,7 +668,7 @@
         fields.push([card.querySelector(".photo-info h4"), "photo_title_zh", photo.id]);
         fields.push([card.querySelector(".photo-info p"), "photo_title_en", photo.id]);
         const image = card.querySelector(".photo-frame img");
-        if (image) { image.classList.add("admin-image-edit"); image.dataset.photoId = photo.id; image.title = "点击替换这张照片"; }
+        if (image) { image.dataset.photoId = photo.id; image.title = "点击适屏查看；替换请使用上方按钮"; }
         if (!card.querySelector(".admin-photo-tools")) {
           const tools = doc.createElement("div");
           tools.className = "admin-photo-tools";
@@ -485,9 +680,24 @@
         if (!element) return;
         element.dataset.inlineField = field;
         if (id) element.dataset.recordId = id;
+        if (!element.dataset.inlineReady) {
+          let stored = storedInlineValue(field, id);
+          let rich = unpackRichValue(stored);
+          if (field === "album_titles") {
+            const currentAlbum = state.albums.find((item) => String(item.id) === String(id));
+            const en = unpackRichValue(currentAlbum?.title_en).text;
+            const zh = unpackRichValue(currentAlbum?.title_zh).text;
+            rich = unpackRichValue(currentAlbum?.title_en);
+            element.innerText = `${en}${zh ? ` · ${zh}` : ""}`;
+          } else {
+            element.innerText = field === "quote_author" ? `—— ${rich.text.replace(/^[——-]+\s*/, "")}` : rich.text;
+          }
+          applyRichStyle(element, rich.style);
+          element.dataset.inlineReady = "true";
+        }
         element.contentEditable = "true";
         element.spellcheck = false;
-        element.title = "点击直接修改，离开时自动保存";
+        element.title = "点击直接修改；完成后统一确认修改";
       });
       const hero = doc.querySelector("#hero-image");
       if (hero) { hero.classList.add("admin-image-edit"); hero.dataset.heroImage = "true"; hero.title = "点击替换首图"; }
@@ -537,12 +747,22 @@
         if (action.dataset.adminAction === "delete-album") return deleteInlineAlbum(action.dataset.albumId);
       }
       const image = event.target.closest("img.admin-image-edit");
-      if (image) {
+      if (image?.dataset.heroImage) {
         event.preventDefault();
         event.stopPropagation();
-        return chooseReplacement(image.dataset.heroImage ? "hero" : "photo", image.dataset.photoId);
+        return chooseReplacement("hero");
+      }
+      const photoImage = event.target.closest(".photo-frame img");
+      if (photoImage) {
+        event.preventDefault();
+        event.stopPropagation();
+        return openAdminLightbox(photoImage.currentSrc || photoImage.src, photoImage.alt);
       }
       if (event.target.closest("[data-inline-field]")) event.stopPropagation();
+    }, true);
+    doc.addEventListener("focusin", (event) => {
+      const element = event.target.closest?.("[data-inline-field]");
+      if (element) activateTextEditor(element);
     }, true);
     doc.addEventListener("focusout", (event) => {
       const element = event.target.closest?.("[data-inline-field]");
@@ -599,6 +819,67 @@
     if (!response.ok && response.status !== 404) await parseResponse(response);
   }
 
+  async function publishDraft() {
+    if (state.activeTextElement?.isConnected) saveInlineText(state.activeTextElement);
+    if (!state.draft.length) return toast("当前没有需要确认的修改。");
+    const button = $("#publish-draft");
+    button.disabled = true;
+    button.textContent = "正在确认……";
+    const rank = { albumInsert: 1, settingPatch: 2, albumPatch: 3, photoInsert: 4, photoPatch: 5, photoDelete: 6, albumDelete: 7 };
+    state.draft.sort((a, b) => (rank[a.type] || 99) - (rank[b.type] || 99));
+    try {
+      while (state.draft.length) {
+        const operation = state.draft[0];
+        if (operation.type === "albumInsert") {
+          const rows = await rest("portfolio_albums", { method: "POST", body: operation.payload, prefer: "return=representation" });
+          const realId = rows?.[0]?.id;
+          if (!realId) throw new Error("新月份没有成功建立。");
+          for (const item of state.draft) {
+            if (String(item.id) === String(operation.tempId)) item.id = realId;
+            if (String(item.payload?.album_id) === String(operation.tempId)) item.payload.album_id = realId;
+          }
+        }
+        if (operation.type === "settingPatch") {
+          await rest("site_settings?id=eq.main", { method: "PATCH", body: operation.patch, prefer: "return=minimal" });
+        }
+        if (operation.type === "albumPatch") {
+          await rest(`portfolio_albums?id=eq.${operation.id}`, { method: "PATCH", body: operation.patch, prefer: "return=minimal" });
+        }
+        if (operation.type === "photoInsert") {
+          const rows = await rest("portfolio_photos", { method: "POST", body: operation.payload, prefer: "return=representation" });
+          const realId = rows?.[0]?.id;
+          if (!realId) throw new Error("新照片没有成功建立记录。");
+          for (const item of state.draft) if (String(item.id) === String(operation.tempId)) item.id = realId;
+        }
+        if (operation.type === "photoPatch") {
+          await rest(`portfolio_photos?id=eq.${operation.id}`, { method: "PATCH", body: operation.patch, prefer: "return=minimal" });
+          if (operation.cleanupPath && operation.cleanupPath !== operation.patch.storage_path) await deleteObject(operation.cleanupPath);
+        }
+        if (operation.type === "photoDelete") {
+          await deleteObject(operation.storagePath);
+          await rest(`portfolio_photos?id=eq.${operation.id}`, { method: "DELETE", prefer: "return=minimal" });
+        }
+        if (operation.type === "albumDelete") {
+          for (const path of operation.storagePaths || []) await deleteObject(path);
+          await rest(`portfolio_albums?id=eq.${operation.id}`, { method: "DELETE", prefer: "return=minimal" });
+        }
+        state.draft.shift();
+        saveDraftLocally(false);
+        draftLabel();
+      }
+      state.activeTextElement = null;
+      updateTextToolbar();
+      await loadAll();
+      toast("全部修改已经确认并同步到公开网站。");
+    } catch (error) {
+      saveDraftLocally(false);
+      toast(`还有修改未提交：${error.message}`);
+    } finally {
+      button.textContent = "确定修改";
+      draftLabel();
+    }
+  }
+
   $("#login-form").addEventListener("submit", async (event) => {
     event.preventDefault();
     const output = $("#login-state");
@@ -624,6 +905,22 @@
   $("#visual-new-album").addEventListener("click", openQuickAlbum);
   $("#visual-upload").addEventListener("click", chooseBatchUpload);
   $("#public-preview").addEventListener("load", bindVisualPreview);
+  $("#close-admin-lightbox").addEventListener("click", closeAdminLightbox);
+  $("#admin-lightbox").addEventListener("click", (event) => { if (event.target === $("#admin-lightbox")) closeAdminLightbox(); });
+  window.addEventListener("keydown", (event) => { if (event.key === "Escape" && !$("#admin-lightbox").hidden) closeAdminLightbox(); });
+  $("#text-toolbar").addEventListener("mousedown", (event) => { if (event.target.closest("button")) event.preventDefault(); });
+  $("#text-font-size").addEventListener("change", (event) => applyTextFormat({ fontSize: event.target.value ? Number(event.target.value) : null }));
+  $("#text-toolbar").addEventListener("click", (event) => {
+    const format = event.target.closest("[data-text-format]");
+    if (format) return applyTextFormat({ [format.dataset.textFormat]: "toggle" });
+    const align = event.target.closest("[data-text-align]");
+    if (align) applyTextFormat({ align: align.dataset.textAlign });
+  });
+  $("#save-draft").addEventListener("click", () => {
+    if (state.activeTextElement?.isConnected) saveInlineText(state.activeTextElement);
+    saveDraftLocally();
+  });
+  $("#publish-draft").addEventListener("click", publishDraft);
   $("#close-quick-album").addEventListener("click", () => $("#quick-album-dialog").close());
   $("#reset-album").addEventListener("click", resetAlbumForm);
   $("#album-month").innerHTML = monthNamesZh.map((name, index) => `<option value="${index + 1}">${String(index + 1).padStart(2, "0")} · ${name}</option>`).join("");
@@ -638,13 +935,18 @@
     const output = $("#quick-album-state");
     const year = Number($("#quick-year").value);
     const month = Number($("#quick-month").value);
-    const payload = { year, month, title_zh: $("#quick-title-zh").value.trim(), title_en: $("#quick-title-en").value.trim(), description: $("#quick-description").value.trim(), published: $("#quick-published").checked, sort_order: Number(`${year}${String(month).padStart(2, "0")}`) };
-    setFormState(output, "正在建立……");
+    const collection = previewCollection();
+    const payload = { collection, year, month, title_zh: $("#quick-title-zh").value.trim(), title_en: $("#quick-title-en").value.trim(), description: $("#quick-description").value.trim(), published: $("#quick-published").checked, sort_order: Number(`${year}${String(month).padStart(2, "0")}`) };
+    setFormState(output, "正在加入草稿……");
     try {
-      await rest("portfolio_albums", { method: "POST", body: payload, prefer: "return=minimal" });
+      if (state.albums.some((item) => (item.collection || "bw") === collection && Number(item.year) === year && Number(item.month) === month)) throw new Error("duplicate");
+      const tempId = -Date.now();
+      state.albums.push({ id: tempId, ...payload });
+      queueOperation({ type: "albumInsert", tempId, payload });
       $("#quick-album-dialog").close();
-      toast("新月份已建立并保存。");
-      await loadAll();
+      renderAlbums();
+      populateAlbumSelects();
+      toast("新月份已加入草稿，确认修改后公开。");
     } catch (error) { setFormState(output, error.message.includes("duplicate") ? "这个年月已经存在。" : error.message, "error"); }
   });
   $("#album-month").addEventListener("change", (event) => {
@@ -778,7 +1080,7 @@
   $("#settings-form").addEventListener("submit", async (event) => {
     event.preventDefault();
     const output = $("#settings-state");
-    const payload = { quote_text: $("#setting-quote").value.trim(), quote_author: $("#setting-author").value.trim(), about_text: $("#setting-about").value.trim(), hero_image_url: $("#setting-hero-url").value.trim() };
+    const payload = { quote_text: $("#setting-quote").value.trim(), quote_author: $("#setting-author").value.trim(), hero_image_url: $("#setting-hero-url").value.trim() };
     setFormState(output, "正在保存……");
     try {
       if (state.settings) await rest("site_settings?id=eq.main", { method: "PATCH", body: payload, prefer: "return=minimal" });
@@ -814,6 +1116,11 @@
 
   async function restore() {
     resetAlbumForm();
+    try {
+      const savedDraft = JSON.parse(localStorage.getItem(DRAFT_KEY) || "[]");
+      state.draft = Array.isArray(savedDraft) ? savedDraft : [];
+    } catch { state.draft = []; }
+    draftLabel();
     const persistentSession = localStorage.getItem(SESSION_KEY);
     const stored = persistentSession || sessionStorage.getItem(SESSION_KEY);
     state.rememberLogin = Boolean(persistentSession);
