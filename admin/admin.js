@@ -265,31 +265,256 @@
     }, 350);
   }
 
+  function previewAlbum(doc) {
+    const text = doc.querySelector(".month-bar h3")?.textContent || "";
+    const match = text.match(/(\d{4})\s*\/\s*(\d{1,2})/);
+    return match && state.albums.find((item) => Number(item.year) === Number(match[1]) && Number(item.month) === Number(match[2]));
+  }
+
+  function albumPhotos(albumId) {
+    return state.photos.filter((photo) => String(photo.album_id) === String(albumId) && photo.published).sort((a, b) => a.sort_order - b.sort_order || a.id - b.id);
+  }
+
+  async function saveSettingsPatch(patch) {
+    if (state.settings) {
+      await rest("site_settings?id=eq.main", { method: "PATCH", body: patch, prefer: "return=minimal" });
+      Object.assign(state.settings, patch);
+    } else {
+      const payload = { id: "main", quote_text: "The image itself has not changed.", quote_author: "Donald Alexander Sheff", about_text: "独立黑白胶片摄影档案。每个月是一卷独立的观看记录。", hero_image_url: "", ...patch };
+      await rest("site_settings", { method: "POST", body: payload, prefer: "return=minimal" });
+      state.settings = payload;
+    }
+    fillSettings();
+  }
+
+  async function saveInlineText(element) {
+    if (element.dataset.saving === "true") return;
+    const field = element.dataset.inlineField;
+    const id = Number(element.dataset.recordId || 0);
+    const value = element.innerText.replace(/\s+/g, " ").trim();
+    if (!value) return refreshPreview();
+    element.dataset.saving = "true";
+    element.classList.add("admin-saving");
+    try {
+      if (field === "quote_text") await saveSettingsPatch({ quote_text: value });
+      if (field === "quote_author") await saveSettingsPatch({ quote_author: value.replace(/^[—–-]+\s*/, "") });
+      if (field === "about_text") await saveSettingsPatch({ about_text: value });
+      if (field === "album_description") {
+        await rest(`portfolio_albums?id=eq.${id}`, { method: "PATCH", body: { description: value }, prefer: "return=minimal" });
+        Object.assign(state.albums.find((item) => item.id === id) || {}, { description: value });
+      }
+      if (field === "album_titles") {
+        const parts = value.split("·").map((part) => part.trim()).filter(Boolean);
+        const album = state.albums.find((item) => item.id === id);
+        const patch = { title_en: parts.length > 1 ? parts[0] : album?.title_en || "", title_zh: parts.length > 1 ? parts.slice(1).join(" · ") : parts[0] };
+        await rest(`portfolio_albums?id=eq.${id}`, { method: "PATCH", body: patch, prefer: "return=minimal" });
+        Object.assign(album || {}, patch);
+      }
+      if (field === "photo_title_zh" || field === "photo_title_en") {
+        const column = field === "photo_title_zh" ? "title_zh" : "title_en";
+        await rest(`portfolio_photos?id=eq.${id}`, { method: "PATCH", body: { [column]: value }, prefer: "return=minimal" });
+        Object.assign(state.photos.find((item) => item.id === id) || {}, { [column]: value });
+      }
+      toast("已自动保存。");
+      refreshPreview();
+    } catch (error) {
+      toast(`保存失败：${error.message}`);
+      refreshPreview();
+    }
+  }
+
+  async function chooseReplacement(kind, recordId) {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = "image/jpeg,image/png,image/webp";
+    input.addEventListener("change", async () => {
+      const source = input.files?.[0];
+      if (!source) return;
+      toast("正在处理并上传图片……");
+      try {
+        const file = await prepareWebImage(source, kind === "hero" ? 2600 : 2400);
+        const extension = file.type === "image/png" ? "png" : file.type === "image/webp" ? "webp" : "jpg";
+        if (kind === "hero") {
+          const path = `site/${safeFileName(file.name)}.${extension}`;
+          const imageUrl = await uploadObject(file, path);
+          await saveSettingsPatch({ hero_image_url: imageUrl });
+        } else {
+          const photo = state.photos.find((item) => item.id === Number(recordId));
+          const album = photo && state.albums.find((item) => item.id === photo.album_id);
+          if (!photo || !album) throw new Error("没有找到这张照片的记录。");
+          const path = `${album.year}/${String(album.month).padStart(2, "0")}/${safeFileName(file.name)}.${extension}`;
+          const imageUrl = await uploadObject(file, path);
+          const oldPath = photo.storage_path;
+          await rest(`portfolio_photos?id=eq.${photo.id}`, { method: "PATCH", body: { image_url: imageUrl, storage_path: path }, prefer: "return=minimal" });
+          Object.assign(photo, { image_url: imageUrl, storage_path: path });
+          await deleteObject(oldPath);
+        }
+        toast("图片已替换并自动保存。");
+        refreshPreview();
+      } catch (error) { toast(`图片替换失败：${error.message}`); }
+    }, { once: true });
+    input.click();
+  }
+
+  function openQuickAlbum() {
+    const latest = state.albums.reduce((best, album) => !best || Number(`${album.year}${String(album.month).padStart(2, "0")}`) > Number(`${best.year}${String(best.month).padStart(2, "0")}`) ? album : best, null);
+    let year = latest?.year || 2026;
+    let month = (latest?.month || 7) + 1;
+    if (month > 12) { year += 1; month = 1; }
+    $("#quick-year").value = year;
+    $("#quick-month").value = month;
+    $("#quick-title-zh").value = monthNamesZh[month - 1];
+    $("#quick-title-en").value = monthNamesEn[month - 1];
+    $("#quick-description").value = "";
+    $("#quick-published").checked = true;
+    setFormState($("#quick-album-state"));
+    $("#quick-album-dialog").showModal();
+  }
+
+  async function chooseBatchUpload() {
+    const doc = $("#public-preview").contentDocument;
+    const album = doc && previewAlbum(doc);
+    if (!album) return toast("请先在时间轴中选择要上传照片的月份。");
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = "image/jpeg,image/png,image/webp";
+    input.multiple = true;
+    input.addEventListener("change", async () => {
+      const files = [...(input.files || [])];
+      if (!files.length) return;
+      try {
+        let sortOrder = Math.max(0, ...state.photos.filter((photo) => photo.album_id === album.id).map((photo) => photo.sort_order)) + 1;
+        for (let index = 0; index < files.length; index += 1) {
+          toast(`正在上传 ${index + 1} / ${files.length}……`);
+          const original = files[index];
+          const file = await prepareWebImage(original);
+          const extension = file.type === "image/png" ? "png" : file.type === "image/webp" ? "webp" : "jpg";
+          const path = `${album.year}/${String(album.month).padStart(2, "0")}/${safeFileName(file.name)}.${extension}`;
+          const imageUrl = await uploadObject(file, path);
+          await rest("portfolio_photos", { method: "POST", body: { album_id: album.id, storage_path: path, image_url: imageUrl, title_zh: original.name.replace(/\.[^.]+$/, ""), title_en: "", alt_text: "黑白摄影作品", published: true, sort_order: sortOrder }, prefer: "return=minimal" });
+          sortOrder += 1;
+        }
+        toast(`${files.length} 张照片已上传并保存。`);
+        await loadAll();
+      } catch (error) { toast(`上传失败：${error.message}`); }
+    }, { once: true });
+    input.click();
+  }
+
+  async function moveInlinePhoto(id, direction) {
+    const photo = state.photos.find((item) => item.id === Number(id));
+    if (!photo) return;
+    const photos = state.photos.filter((item) => item.album_id === photo.album_id && item.published).sort((a, b) => a.sort_order - b.sort_order || a.id - b.id);
+    const index = photos.findIndex((item) => item.id === photo.id);
+    const other = photos[index + direction];
+    if (!other) return toast(direction < 0 ? "已经是第一张。" : "已经是最后一张。");
+    await Promise.all([
+      rest(`portfolio_photos?id=eq.${photo.id}`, { method: "PATCH", body: { sort_order: other.sort_order }, prefer: "return=minimal" }),
+      rest(`portfolio_photos?id=eq.${other.id}`, { method: "PATCH", body: { sort_order: photo.sort_order }, prefer: "return=minimal" }),
+    ]);
+    toast("照片顺序已保存。");
+    await loadAll();
+  }
+
+  async function deleteInlinePhoto(id) {
+    const photo = state.photos.find((item) => item.id === Number(id));
+    if (!photo || !confirm(`确定删除“${photo.title_zh || "这张照片"}”吗？`)) return;
+    await deleteObject(photo.storage_path);
+    await rest(`portfolio_photos?id=eq.${photo.id}`, { method: "DELETE", prefer: "return=minimal" });
+    toast("照片已删除。");
+    await loadAll();
+  }
+
+  async function deleteInlineAlbum(id) {
+    const album = state.albums.find((item) => item.id === Number(id));
+    if (!album || !confirm(`确定删除 ${albumLabel(album)} 和其中全部照片吗？`)) return;
+    for (const photo of state.photos.filter((item) => item.album_id === album.id)) await deleteObject(photo.storage_path);
+    await rest(`portfolio_albums?id=eq.${album.id}`, { method: "DELETE", prefer: "return=minimal" });
+    toast("这个月份已删除。");
+    await loadAll();
+  }
+
   function bindVisualPreview() {
     const frame = $("#public-preview");
     let doc;
     try { doc = frame.contentDocument; } catch { return; }
     if (!doc?.body) return;
     const style = doc.createElement("style");
-    style.textContent = `.hero-visual,.hero-copy,.month-bar,.photo-card,#guestbook,#about{cursor:pointer;transition:outline-color .16s ease,outline-offset .16s ease}.hero-visual:hover,.hero-copy:hover,.month-bar:hover,.photo-card:hover,#guestbook:hover,#about:hover{outline:3px solid #0969da;outline-offset:-3px}.photo-button{pointer-events:none}.lightbox{display:none!important}`;
+    style.textContent = `[data-inline-field]{cursor:text;border-radius:4px;transition:outline-color .16s ease,background .16s ease}[data-inline-field]:hover{outline:2px dashed #0969da;outline-offset:4px}[data-inline-field]:focus{outline:3px solid #0969da;outline-offset:5px;background:#ddf4ff}.admin-image-edit{cursor:pointer!important;transition:outline-color .16s ease}.admin-image-edit:hover{outline:3px solid #0969da;outline-offset:-3px}.admin-saving{opacity:.55}.photo-card,.month-bar{position:relative}.admin-photo-tools,.admin-month-tools{position:absolute;z-index:9;display:flex;gap:4px;padding:5px;background:rgba(31,35,40,.9);border-radius:7px;box-shadow:0 6px 18px rgba(31,35,40,.18)}.admin-photo-tools{top:9px;right:9px}.admin-month-tools{right:12px;bottom:10px}.admin-photo-tools button,.admin-month-tools button{padding:5px 7px;color:#fff;background:transparent;border:1px solid rgba(255,255,255,.35);border-radius:5px;font:600 11px -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;cursor:pointer}.admin-photo-tools button:hover,.admin-month-tools button:hover{background:#0969da}.lightbox{display:none!important}`;
     doc.head.appendChild(style);
-    doc.addEventListener("click", (event) => {
-      if (event.target.closest(".timeline-node")) return;
-      const editable = event.target.closest(".hero-visual,.hero-copy,.month-bar,.photo-card,#guestbook,#about");
-      if (!editable) return;
-      event.preventDefault();
-      event.stopPropagation();
-      if (editable.matches(".hero-visual,.hero-copy,#about")) return showAdvanced("site-settings");
-      if (editable.matches("#guestbook")) return showAdvanced("messages");
-      const text = doc.querySelector(".month-bar h3")?.textContent || "";
-      const match = text.match(/(\d{4})\s*\/\s*(\d{1,2})/);
-      const album = match && state.albums.find((item) => Number(item.year) === Number(match[1]) && Number(item.month) === Number(match[2]));
-      if (editable.matches(".month-bar")) return album ? editAlbum(album.id) : showAdvanced("albums");
-      if (editable.matches(".photo-card") && album) {
-        const cards = [...doc.querySelectorAll(".photo-card")];
-        return openPhotoEditor(cards.indexOf(editable), album.id);
+    const decorate = () => {
+      const album = previewAlbum(doc);
+      const photos = album ? albumPhotos(album.id) : [];
+      const fields = [
+        [doc.querySelector("#hero-title"), "quote_text", ""],
+        [doc.querySelector("#quote-credit"), "quote_author", ""],
+        [doc.querySelector("#about-description"), "about_text", ""],
+        [doc.querySelector("#month-description"), "album_description", album?.id],
+        [doc.querySelector("#month-name"), "album_titles", album?.id],
+      ];
+      doc.querySelectorAll(".photo-card").forEach((card, index) => {
+        const photo = photos[index];
+        if (!photo) return;
+        fields.push([card.querySelector(".photo-info h4"), "photo_title_zh", photo.id]);
+        fields.push([card.querySelector(".photo-info p"), "photo_title_en", photo.id]);
+        const image = card.querySelector(".photo-frame img");
+        if (image) { image.classList.add("admin-image-edit"); image.dataset.photoId = photo.id; image.title = "点击替换这张照片"; }
+        if (!card.querySelector(".admin-photo-tools")) {
+          const tools = doc.createElement("div");
+          tools.className = "admin-photo-tools";
+          tools.innerHTML = `<button type="button" data-admin-action="move-prev" data-photo-id="${photo.id}">←</button><button type="button" data-admin-action="move-next" data-photo-id="${photo.id}">→</button><button type="button" data-admin-action="replace-photo" data-photo-id="${photo.id}">替换</button><button type="button" data-admin-action="delete-photo" data-photo-id="${photo.id}">删除</button>`;
+          card.appendChild(tools);
+        }
+      });
+      fields.forEach(([element, field, id]) => {
+        if (!element) return;
+        element.dataset.inlineField = field;
+        if (id) element.dataset.recordId = id;
+        element.contentEditable = "true";
+        element.spellcheck = false;
+        element.title = "点击直接修改，离开时自动保存";
+      });
+      const hero = doc.querySelector("#hero-image");
+      if (hero) { hero.classList.add("admin-image-edit"); hero.dataset.heroImage = "true"; hero.title = "点击替换首图"; }
+      const monthBar = doc.querySelector(".month-bar");
+      if (monthBar && album && !monthBar.querySelector(".admin-month-tools")) {
+        const tools = doc.createElement("div");
+        tools.className = "admin-month-tools";
+        tools.innerHTML = `<button type="button" data-admin-action="upload-month" data-album-id="${album.id}">＋ 批量上传</button><button type="button" data-admin-action="delete-album" data-album-id="${album.id}">删除本月</button>`;
+        monthBar.appendChild(tools);
       }
-    });
+    };
+    decorate();
+    const observer = new MutationObserver(decorate);
+    observer.observe(doc.body, { childList: true, subtree: true });
+    doc.addEventListener("click", (event) => {
+      const action = event.target.closest("[data-admin-action]");
+      if (action) {
+        event.preventDefault(); event.stopPropagation();
+        const photoId = action.dataset.photoId;
+        if (action.dataset.adminAction === "move-prev") return moveInlinePhoto(photoId, -1);
+        if (action.dataset.adminAction === "move-next") return moveInlinePhoto(photoId, 1);
+        if (action.dataset.adminAction === "replace-photo") return chooseReplacement("photo", photoId);
+        if (action.dataset.adminAction === "delete-photo") return deleteInlinePhoto(photoId);
+        if (action.dataset.adminAction === "upload-month") return chooseBatchUpload();
+        if (action.dataset.adminAction === "delete-album") return deleteInlineAlbum(action.dataset.albumId);
+      }
+      const image = event.target.closest("img.admin-image-edit");
+      if (image) {
+        event.preventDefault();
+        event.stopPropagation();
+        return chooseReplacement(image.dataset.heroImage ? "hero" : "photo", image.dataset.photoId);
+      }
+      if (event.target.closest("[data-inline-field]")) event.stopPropagation();
+    }, true);
+    doc.addEventListener("focusout", (event) => {
+      const element = event.target.closest?.("[data-inline-field]");
+      if (element) saveInlineText(element);
+    }, true);
+    doc.addEventListener("keydown", (event) => {
+      const element = event.target.closest?.("[data-inline-field]");
+      if (element && event.key === "Enter" && !event.shiftKey) { event.preventDefault(); element.blur(); }
+    }, true);
   }
 
   async function prepareWebImage(file, maxSide = 2400) {
@@ -358,11 +583,32 @@
   $("#show-advanced").addEventListener("click", () => showAdvanced());
   $("#back-visual").addEventListener("click", showVisual);
   $("#visual-refresh").addEventListener("click", refreshPreview);
-  $("#visual-new-album").addEventListener("click", () => { resetAlbumForm(); showAdvanced("albums"); });
-  $("#visual-upload").addEventListener("click", () => showAdvanced("photos"));
+  $("#visual-new-album").addEventListener("click", openQuickAlbum);
+  $("#visual-upload").addEventListener("click", chooseBatchUpload);
   $("#public-preview").addEventListener("load", bindVisualPreview);
+  $("#close-quick-album").addEventListener("click", () => $("#quick-album-dialog").close());
   $("#reset-album").addEventListener("click", resetAlbumForm);
   $("#album-month").innerHTML = monthNamesZh.map((name, index) => `<option value="${index + 1}">${String(index + 1).padStart(2, "0")} · ${name}</option>`).join("");
+  $("#quick-month").innerHTML = monthNamesZh.map((name, index) => `<option value="${index + 1}">${String(index + 1).padStart(2, "0")} · ${name}</option>`).join("");
+  $("#quick-month").addEventListener("change", (event) => {
+    const index = Number(event.target.value) - 1;
+    $("#quick-title-zh").value = monthNamesZh[index];
+    $("#quick-title-en").value = monthNamesEn[index];
+  });
+  $("#quick-album-form").addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const output = $("#quick-album-state");
+    const year = Number($("#quick-year").value);
+    const month = Number($("#quick-month").value);
+    const payload = { year, month, title_zh: $("#quick-title-zh").value.trim(), title_en: $("#quick-title-en").value.trim(), description: $("#quick-description").value.trim(), published: $("#quick-published").checked, sort_order: Number(`${year}${String(month).padStart(2, "0")}`) };
+    setFormState(output, "正在建立……");
+    try {
+      await rest("portfolio_albums", { method: "POST", body: payload, prefer: "return=minimal" });
+      $("#quick-album-dialog").close();
+      toast("新月份已建立并保存。");
+      await loadAll();
+    } catch (error) { setFormState(output, error.message.includes("duplicate") ? "这个年月已经存在。" : error.message, "error"); }
+  });
   $("#album-month").addEventListener("change", (event) => {
     const index = Number(event.target.value) - 1;
     if (!$("#album-id").value) {

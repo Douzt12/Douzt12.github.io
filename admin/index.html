@@ -37,11 +37,22 @@
   <main class="admin-shell" id="admin-view" hidden>
     <section class="visual-editor" id="visual-view">
       <header class="visual-toolbar">
-        <div><p class="overline">Visual editor / 可视化编辑</p><h1>点击页面内容即可编辑。</h1><p>时间轴可直接切换月份；点击首图、文字、月份、照片、留言或关于，会打开对应的编辑区。</p></div>
+        <div><p class="overline">Visual editor / 可视化编辑</p><h1>直接在页面上修改。</h1><p>点击文字即可输入，离开时自动保存；点击首图或作品图片即可选择替换。页面不会跳转。</p></div>
         <div class="visual-actions"><button class="secondary-button" type="button" id="visual-new-album">＋ 新月份</button><button class="secondary-button" type="button" id="visual-upload">＋ 上传照片</button><button class="secondary-button" type="button" id="visual-refresh">刷新预览</button></div>
       </header>
-      <div class="preview-shell"><iframe id="public-preview" title="DOUZT 网站可视化编辑预览" src="../"></iframe><div class="preview-note">带蓝色轮廓的内容可以点击编辑</div></div>
+      <div class="preview-shell"><iframe id="public-preview" title="DOUZT 网站可视化编辑预览" src="../"></iframe><div class="preview-note">文字点击修改 · 图片点击替换</div></div>
     </section>
+
+    <dialog class="quick-dialog" id="quick-album-dialog">
+      <form id="quick-album-form">
+        <header><div><p class="overline">New album / 新月份</p><h2>建立月度档案</h2></div><button type="button" class="dialog-close" id="close-quick-album" aria-label="关闭">×</button></header>
+        <div class="field-row two-columns"><label><span>年份</span><input id="quick-year" type="number" min="2026" max="2200" required></label><label><span>月份</span><select id="quick-month" required></select></label></div>
+        <div class="field-row two-columns"><label><span>中文标题</span><input id="quick-title-zh" maxlength="40" required></label><label><span>英文标题</span><input id="quick-title-en" maxlength="40" required></label></div>
+        <label><span>本月说明</span><textarea id="quick-description" maxlength="160" rows="3"></textarea></label>
+        <label class="check-row"><input id="quick-published" type="checkbox" checked><span>建立后立即公开</span></label>
+        <button class="primary-button" type="submit">建立并保存</button><p class="form-state" id="quick-album-state" aria-live="polite"></p>
+      </form>
+    </dialog>
 
     <div id="advanced-view" hidden>
     <header class="page-heading">
