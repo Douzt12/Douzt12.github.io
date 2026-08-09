@@ -56,7 +56,7 @@ button { color: inherit; font: inherit; }
 .primary-link { display: inline-flex; align-items: center; gap: 20px; padding: 9px 14px; background: var(--ink); color: #fff; border: 1px solid rgba(31, 35, 40, 0.15); border-radius: 7px; font-size: 0.86rem; font-weight: 600; transition: transform 180ms ease, background 180ms ease; }
 .primary-link:hover { background: #32383f; transform: translateY(-1px); }
 .hero-visual { position: relative; min-height: 0; overflow: hidden; background: #d8dadd; }
-.hero-visual img { object-fit: cover; object-position: center; }
+.hero-visual img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center; }
 .visual-label { position: absolute; right: 14px; bottom: 14px; padding: 6px 9px; background: rgba(0, 0, 0, 0.7); color: #fff; border: 1px solid rgba(255, 255, 255, 0.22); border-radius: 6px; font-size: 0.65rem; letter-spacing: 0.06em; text-transform: uppercase; backdrop-filter: blur(8px); }
 
 .portfolio-layout { display: grid; grid-template-columns: minmax(0, 1fr); align-items: start; padding-top: 40px; }
@@ -69,8 +69,13 @@ button { color: inherit; font: inherit; }
 .count-badge { padding: 4px 8px; color: var(--muted); background: rgba(175, 184, 193, 0.12); border: 1px solid var(--border); border-radius: 999px; font-size: 0.72rem; }
 .timeline-panel { margin-bottom: 16px; padding: 20px 22px 16px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; box-shadow: var(--shadow); }
 .timeline-heading { display: flex; align-items: center; justify-content: space-between; gap: 20px; margin-bottom: 18px; }
+.timeline-heading > div { display: flex; align-items: center; gap: 12px; }
 .timeline-heading strong { font-size: 0.92rem; letter-spacing: -0.02em; }
 .timeline-heading span { color: var(--muted); font-size: 0.72rem; }
+.timeline-year-tabs { display: flex; align-items: center; gap: 4px; }
+.timeline-year-tabs button { padding: 3px 7px; color: var(--muted); background: transparent; border: 1px solid transparent; border-radius: 5px; font-size: 0.68rem; cursor: pointer; }
+.timeline-year-tabs button:hover, .timeline-year-tabs button:focus-visible { color: var(--accent); border-color: var(--border); }
+.timeline-year-tabs button.active { color: var(--accent); background: var(--accent-soft); border-color: rgba(9, 105, 218, 0.18); }
 .timeline-scroll { overflow-x: auto; padding: 2px 2px 8px; scrollbar-width: thin; }
 .timeline-track { position: relative; display: grid; grid-template-columns: repeat(12, minmax(54px, 1fr)); min-width: 720px; }
 .timeline-track::before { content: ""; position: absolute; left: 4.16%; right: 4.16%; top: 8px; height: 1px; background: var(--border); }
@@ -96,7 +101,7 @@ button { color: inherit; font: inherit; }
 .photo-card { min-width: 0; background: var(--surface); }
 .photo-button { position: relative; display: block; width: 100%; padding: 0; border: 0; background: #111; cursor: zoom-in; overflow: hidden; }
 .photo-frame { position: relative; display: block; width: 100%; aspect-ratio: 3 / 4; overflow: hidden; }
-.photo-frame img { object-fit: cover; transition: transform 550ms cubic-bezier(0.22, 1, 0.36, 1), filter 280ms ease; }
+.photo-frame img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transition: transform 550ms cubic-bezier(0.22, 1, 0.36, 1), filter 280ms ease; }
 .photo-button:hover .photo-frame img, .photo-button:focus-visible .photo-frame img { transform: scale(1.035); filter: contrast(1.06); }
 .photo-button:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
 .view-cue { position: absolute; right: 10px; bottom: 10px; padding: 5px 8px; background: rgba(255, 255, 255, 0.92); color: var(--ink); border-radius: 5px; font-size: 0.68rem; opacity: 0; transform: translateY(4px); transition: opacity 180ms ease, transform 180ms ease; }
@@ -219,11 +224,8 @@ footer > a:last-child { color: var(--accent); }
   .reveal { opacity: 1; transform: none; }
 }
 
-    .hero-visual > img, .photo-frame img { position:absolute; inset:0; width:100%; height:100%; }
     .lightbox { display:none; opacity:0; pointer-events:none; animation:none; }
     .lightbox.open { display:block; opacity:1; pointer-events:auto; animation:lightbox-in 220ms ease both; }
-    .lightbox-image { display:grid; place-items:center; }
-    .lightbox-image img { max-width:100%; max-height:100%; object-fit:contain; }
   </style>
 </head>
 <body>
@@ -232,45 +234,38 @@ footer > a:last-child { color: var(--accent); }
       <a class="brand" href="#top" aria-label="返回首页"><span class="brand-mark">D</span><span>DOUZT</span></a>
       <nav aria-label="主要导航">
         <a href="#archive">作品</a><a href="#guestbook">留言</a><a href="#about">关于</a>
-        <span class="nav-status"><i></i>2026.08</span><span class="nav-views" aria-label="总浏览量">浏览 <b id="view-count">—</b></span>
+        <span class="nav-status"><i></i><span id="nav-period">2026.08</span></span><span class="nav-views" aria-label="总浏览量">浏览 <b id="view-count">—</b></span>
       </nav>
     </div>
   </header>
 
   <main class="site-content" id="top">
     <section class="compact-hero reveal" aria-labelledby="hero-title">
-      <div class="hero-visual hero-photo"><img src="hero-pavilion-square.png" alt="海边完整灯塔、月亮与水面的黑白照片" fetchpriority="high"></div>
+      <div class="hero-visual hero-photo"><img id="hero-image" src="hero-pavilion-square.png" alt="海边完整灯塔、月亮与水面的黑白照片" fetchpriority="high"></div>
       <div class="hero-copy">
         <h1 id="hero-title"><span>The image itself</span><span>has not changed.</span></h1>
-        <p class="quote-credit">—— Donald Alexander Sheff</p>
+        <p class="quote-credit" id="quote-credit">—— Donald Alexander Sheff</p>
       </div>
     </section>
 
     <section class="portfolio-layout" id="archive">
       <div class="archive-main">
-        <header class="section-heading reveal"><p class="overline">Photography / 摄影作品</p><span class="count-badge">3 photographs</span></header>
+        <header class="section-heading reveal"><p class="overline">Photography / 摄影作品</p><span class="count-badge" id="archive-count">3 photographs</span></header>
         <div class="timeline-panel reveal">
-          <div class="timeline-heading"><strong>2026</strong><span>按月浏览 / Monthly</span></div>
-          <div class="timeline-scroll"><div class="timeline-track" role="tablist" aria-label="2026 年摄影作品时间轴"><button type="button" role="tab" class="timeline-node" data-month="2026-01" aria-selected="false" aria-controls="timeline-gallery" aria-label="2026 年 01 月，暂无作品" disabled><span class="timeline-dot" aria-hidden="true"></span><span>01</span></button><button type="button" role="tab" class="timeline-node" data-month="2026-02" aria-selected="false" aria-controls="timeline-gallery" aria-label="2026 年 02 月，暂无作品" disabled><span class="timeline-dot" aria-hidden="true"></span><span>02</span></button><button type="button" role="tab" class="timeline-node" data-month="2026-03" aria-selected="false" aria-controls="timeline-gallery" aria-label="2026 年 03 月，暂无作品" disabled><span class="timeline-dot" aria-hidden="true"></span><span>03</span></button><button type="button" role="tab" class="timeline-node" data-month="2026-04" aria-selected="false" aria-controls="timeline-gallery" aria-label="2026 年 04 月，暂无作品" disabled><span class="timeline-dot" aria-hidden="true"></span><span>04</span></button><button type="button" role="tab" class="timeline-node" data-month="2026-05" aria-selected="false" aria-controls="timeline-gallery" aria-label="2026 年 05 月，暂无作品" disabled><span class="timeline-dot" aria-hidden="true"></span><span>05</span></button><button type="button" role="tab" class="timeline-node" data-month="2026-06" aria-selected="false" aria-controls="timeline-gallery" aria-label="2026 年 06 月，暂无作品" disabled><span class="timeline-dot" aria-hidden="true"></span><span>06</span></button><button type="button" role="tab" class="timeline-node" data-month="2026-07" aria-selected="false" aria-controls="timeline-gallery" aria-label="2026 年 07 月，暂无作品" disabled><span class="timeline-dot" aria-hidden="true"></span><span>07</span></button><button type="button" role="tab" class="timeline-node active" data-month="2026-08" aria-selected="true" aria-controls="timeline-gallery" aria-label="2026 年 08 月"><span class="timeline-dot" aria-hidden="true"></span><span>08</span></button><button type="button" role="tab" class="timeline-node" data-month="2026-09" aria-selected="false" aria-controls="timeline-gallery" aria-label="2026 年 09 月，暂无作品" disabled><span class="timeline-dot" aria-hidden="true"></span><span>09</span></button><button type="button" role="tab" class="timeline-node" data-month="2026-10" aria-selected="false" aria-controls="timeline-gallery" aria-label="2026 年 10 月，暂无作品" disabled><span class="timeline-dot" aria-hidden="true"></span><span>10</span></button><button type="button" role="tab" class="timeline-node" data-month="2026-11" aria-selected="false" aria-controls="timeline-gallery" aria-label="2026 年 11 月，暂无作品" disabled><span class="timeline-dot" aria-hidden="true"></span><span>11</span></button><button type="button" role="tab" class="timeline-node" data-month="2026-12" aria-selected="false" aria-controls="timeline-gallery" aria-label="2026 年 12 月，暂无作品" disabled><span class="timeline-dot" aria-hidden="true"></span><span>12</span></button></div></div>
-          <div class="timeline-progress-row" aria-label="时间进度 08 月，共 12 个月"><span>进度</span><div class="timeline-progress"><i style="width:66.6667%"></i></div><span class="timeline-progress-label">08 / 12</span></div>
+          <div class="timeline-heading"><div><strong id="timeline-year">2026</strong><div class="timeline-year-tabs" id="timeline-years"></div></div><span>按月浏览 / Monthly</span></div>
+          <div class="timeline-scroll"><div class="timeline-track" id="timeline-track" role="tablist" aria-label="2026 年摄影作品时间轴"><button type="button" role="tab" class="timeline-node" data-month="2026-01" aria-selected="false" aria-controls="timeline-gallery" aria-label="2026 年 01 月，暂无作品" disabled><span class="timeline-dot" aria-hidden="true"></span><span>01</span></button><button type="button" role="tab" class="timeline-node" data-month="2026-02" aria-selected="false" aria-controls="timeline-gallery" aria-label="2026 年 02 月，暂无作品" disabled><span class="timeline-dot" aria-hidden="true"></span><span>02</span></button><button type="button" role="tab" class="timeline-node" data-month="2026-03" aria-selected="false" aria-controls="timeline-gallery" aria-label="2026 年 03 月，暂无作品" disabled><span class="timeline-dot" aria-hidden="true"></span><span>03</span></button><button type="button" role="tab" class="timeline-node" data-month="2026-04" aria-selected="false" aria-controls="timeline-gallery" aria-label="2026 年 04 月，暂无作品" disabled><span class="timeline-dot" aria-hidden="true"></span><span>04</span></button><button type="button" role="tab" class="timeline-node" data-month="2026-05" aria-selected="false" aria-controls="timeline-gallery" aria-label="2026 年 05 月，暂无作品" disabled><span class="timeline-dot" aria-hidden="true"></span><span>05</span></button><button type="button" role="tab" class="timeline-node" data-month="2026-06" aria-selected="false" aria-controls="timeline-gallery" aria-label="2026 年 06 月，暂无作品" disabled><span class="timeline-dot" aria-hidden="true"></span><span>06</span></button><button type="button" role="tab" class="timeline-node" data-month="2026-07" aria-selected="false" aria-controls="timeline-gallery" aria-label="2026 年 07 月，暂无作品" disabled><span class="timeline-dot" aria-hidden="true"></span><span>07</span></button><button type="button" role="tab" class="timeline-node active" data-month="2026-08" aria-selected="true" aria-controls="timeline-gallery" aria-label="2026 年 08 月"><span class="timeline-dot" aria-hidden="true"></span><span>08</span></button><button type="button" role="tab" class="timeline-node" data-month="2026-09" aria-selected="false" aria-controls="timeline-gallery" aria-label="2026 年 09 月，暂无作品" disabled><span class="timeline-dot" aria-hidden="true"></span><span>09</span></button><button type="button" role="tab" class="timeline-node" data-month="2026-10" aria-selected="false" aria-controls="timeline-gallery" aria-label="2026 年 10 月，暂无作品" disabled><span class="timeline-dot" aria-hidden="true"></span><span>10</span></button><button type="button" role="tab" class="timeline-node" data-month="2026-11" aria-selected="false" aria-controls="timeline-gallery" aria-label="2026 年 11 月，暂无作品" disabled><span class="timeline-dot" aria-hidden="true"></span><span>11</span></button><button type="button" role="tab" class="timeline-node" data-month="2026-12" aria-selected="false" aria-controls="timeline-gallery" aria-label="2026 年 12 月，暂无作品" disabled><span class="timeline-dot" aria-hidden="true"></span><span>12</span></button></div></div>
+          <div class="timeline-progress-row" aria-label="时间进度"><span>进度</span><div class="timeline-progress"><i style="width:66.6667%"></i></div><span class="timeline-progress-label">08 / 12</span></div>
         </div>
-        <article class="month-card reveal" id="timeline-gallery" aria-labelledby="month-2026-08">
-          <header class="month-bar"><div><span class="folder-icon" aria-hidden="true"></span><h3 id="month-2026-08">2026 / 08</h3><span class="month-name">August · 八月</span></div><p>房间，以及被光触碰过的日常。</p></header>
-          <div class="gallery-grid">
-            <article class="photo-card" data-month="2026-08"><button type="button" class="photo-button" data-index="0" aria-label="全屏查看：倾斜的房间"><span class="photo-frame"><img src="room-01.jpg" alt="倾斜视角下的黑白房间、帘子与生活用品" loading="lazy"></span><span class="view-cue">查看大图</span></button><div class="photo-info"><div><h4>倾斜的房间</h4><p>Room, tilted</p></div><span>01</span></div></article>
-            <article class="photo-card" data-month="2026-08"><button type="button" class="photo-button" data-index="1" aria-label="全屏查看：窗边的手势"><span class="photo-frame"><img src="room-02.jpg" alt="窗边一只扶着瓶子的手，墙上落着模糊树影" loading="lazy"></span><span class="view-cue">查看大图</span></button><div class="photo-info"><div><h4>窗边的手势</h4><p>A gesture by the window</p></div><span>02</span></div></article>
-            <article class="photo-card" data-month="2026-08"><button type="button" class="photo-button" data-index="2" aria-label="全屏查看：走廊还在延伸"><span class="photo-frame"><img src="room-03.jpg" alt="晾着衣物的幽深黑白走廊，尽头有一束光" loading="lazy"></span><span class="view-cue">查看大图</span></button><div class="photo-info"><div><h4>走廊还在延伸</h4><p>The corridor keeps going</p></div><span>03</span></div></article>
-          </div>
+        <article class="month-card reveal" id="timeline-gallery" aria-labelledby="month-heading">
+          <header class="month-bar"><div><span class="folder-icon" aria-hidden="true"></span><h3 id="month-heading">2026 / 08</h3><span class="month-name" id="month-name">August · 八月</span></div><p id="month-description">房间，以及被光触碰过的日常。</p></header>
+          <div class="gallery-grid" id="gallery-grid"><article class="photo-card"><button type="button" class="photo-button" data-index="0" aria-label="全屏查看：倾斜的房间"><span class="photo-frame"><img src="room-01.jpg" alt="倾斜视角下的黑白房间、帘子与生活用品" loading="lazy"></span><span class="view-cue">查看大图</span></button><div class="photo-info"><div><h4>倾斜的房间</h4><p>Room, tilted</p></div><span>01</span></div></article><article class="photo-card"><button type="button" class="photo-button" data-index="1" aria-label="全屏查看：窗边的手势"><span class="photo-frame"><img src="room-02.jpg" alt="窗边一只扶着瓶子的手，墙上落着模糊树影" loading="lazy"></span><span class="view-cue">查看大图</span></button><div class="photo-info"><div><h4>窗边的手势</h4><p>A gesture by the window</p></div><span>02</span></div></article><article class="photo-card"><button type="button" class="photo-button" data-index="2" aria-label="全屏查看：走廊还在延伸"><span class="photo-frame"><img src="room-03.jpg" alt="晾着衣物的幽深黑白走廊，尽头有一束光" loading="lazy"></span><span class="view-cue">查看大图</span></button><div class="photo-info"><div><h4>走廊还在延伸</h4><p>The corridor keeps going</p></div><span>03</span></div></article></div>
         </article>
         <div class="empty-month reveal"><span class="folder-icon" aria-hidden="true"></span><div><strong>Next month</strong><p>下一卷，待冲洗。</p></div><span>Coming soon</span></div>
       </div>
     </section>
 
     <section class="guestbook-card reveal" id="guestbook" aria-labelledby="guestbook-title">
-      <header class="guestbook-heading">
-        <p class="overline" id="guestbook-title">Guestbook / 留言板</p>
-        <span class="count-badge" id="message-count">0 messages</span>
-      </header>
+      <header class="guestbook-heading"><p class="overline" id="guestbook-title">Guestbook / 留言板</p><span class="count-badge" id="message-count">0 messages</span></header>
       <form class="guestbook-form" id="guestbook-form">
         <label class="message-field"><span>留言</span><textarea id="guest-message" required maxlength="300" rows="4" placeholder="写下一句想说的话……"></textarea></label>
         <label class="name-field"><span>称呼</span><input id="guest-name" type="text" maxlength="30" placeholder="你的名字（可选）"></label>
@@ -280,14 +275,8 @@ footer > a:last-child { color: var(--accent); }
     </section>
 
     <section class="about-card reveal" id="about">
-      <div class="about-identity">
-        <p class="overline">About / 关于</p>
-        <div class="avatar" aria-hidden="true">D</div><h2>DOUZT</h2><p class="handle">@film-archive</p>
-      </div>
-      <div class="about-profile-copy">
-        <p>独立黑白胶片摄影档案。每个月是一卷独立的观看记录。</p>
-        <dl><div><dt>媒介</dt><dd>Black &amp; white film</dd></div><div><dt>更新</dt><dd>Monthly</dd></div><div><dt>地点</dt><dd>China</dd></div></dl>
-      </div>
+      <div class="about-identity"><p class="overline">About / 关于</p><div class="avatar" aria-hidden="true">D</div><h2>DOUZT</h2><p class="handle">@film-archive</p></div>
+      <div class="about-profile-copy"><p id="about-description">独立黑白胶片摄影档案。每个月是一卷独立的观看记录。</p><dl><div><dt>媒介</dt><dd>Black &amp; white film</dd></div><div><dt>更新</dt><dd>Monthly</dd></div><div><dt>地点</dt><dd>China</dd></div></dl></div>
     </section>
   </main>
 
@@ -301,76 +290,109 @@ footer > a:last-child { color: var(--accent); }
   </div>
 
   <script>
-    const works=[
-      {src:'room-01.jpg',title:'倾斜的房间',alt:'倾斜视角下的黑白房间、帘子与生活用品'},
-      {src:'room-02.jpg',title:'窗边的手势',alt:'窗边一只扶着瓶子的手，墙上落着模糊树影'},
-      {src:'room-03.jpg',title:'走廊还在延伸',alt:'晾着衣物的幽深黑白走廊，尽头有一束光'}
+    const fallbackAlbums=[{id:'fallback-2026-08',year:2026,month:8,title_zh:'八月',title_en:'August',description:'房间，以及被光触碰过的日常。'}];
+    const fallbackWorks=[
+      {id:'fallback-1',album_id:'fallback-2026-08',image_url:'room-01.jpg',title_zh:'倾斜的房间',title_en:'Room, tilted',alt_text:'倾斜视角下的黑白房间、帘子与生活用品'},
+      {id:'fallback-2',album_id:'fallback-2026-08',image_url:'room-02.jpg',title_zh:'窗边的手势',title_en:'A gesture by the window',alt_text:'窗边一只扶着瓶子的手，墙上落着模糊树影'},
+      {id:'fallback-3',album_id:'fallback-2026-08',image_url:'room-03.jpg',title_zh:'走廊还在延伸',title_en:'The corridor keeps going',alt_text:'晾着衣物的幽深黑白走廊，尽头有一束光'}
     ];
+    let albums=fallbackAlbums.slice();
+    let allPhotos=fallbackWorks.slice();
+    let works=fallbackWorks.slice();
+    let activeAlbum=albums[0];
+    let selectedYear=2026;
     const lightbox=document.querySelector('.lightbox');
     const full=document.querySelector('.lightbox-image img');
     let current=0;
-    function show(index){current=(index+works.length)%works.length;const work=works[current];full.src=work.src;full.alt=work.alt;document.querySelector('.lb-number').textContent=String(current+1).padStart(2,'0')+' / 03';document.querySelector('.lb-title').textContent=work.title}
+    function escapeHtml(value){const node=document.createElement('span');node.textContent=value==null?'':String(value);return node.innerHTML}
+    function periodId(album){return String(album.year)+'-'+String(album.month).padStart(2,'0')}
+    function show(index){if(!works.length)return;current=(index+works.length)%works.length;const work=works[current];full.src=work.image_url;full.alt=work.alt_text||work.title_zh||'摄影作品';document.querySelector('.lb-number').textContent=String(current+1).padStart(2,'0')+' / '+String(works.length).padStart(2,'0');document.querySelector('.lb-title').textContent=work.title_zh||'未命名';document.querySelector('.lb-date').textContent=String(activeAlbum.year)+'.'+String(activeAlbum.month).padStart(2,'0')}
     function openBox(index){show(index);lightbox.classList.add('open');lightbox.setAttribute('aria-hidden','false');document.body.style.overflow='hidden';document.querySelector('.lightbox-close').focus()}
     function closeBox(){lightbox.classList.remove('open');lightbox.setAttribute('aria-hidden','true');document.body.style.overflow=''}
-    closeBox(); addEventListener('pageshow',closeBox);
-    document.querySelectorAll('.photo-button').forEach(button=>button.addEventListener('click',()=>openBox(Number(button.dataset.index))));
+    function bindPhotoButtons(){document.querySelectorAll('.photo-button').forEach(function(button){button.addEventListener('click',function(){openBox(Number(button.dataset.index))})})}
+    closeBox();addEventListener('pageshow',closeBox);bindPhotoButtons();
     document.querySelector('.lightbox-close').addEventListener('click',closeBox);
-    document.querySelector('.lightbox-prev').addEventListener('click',()=>show(current-1));
-    document.querySelector('.lightbox-next').addEventListener('click',()=>show(current+1));
-    addEventListener('keydown',event=>{if(!lightbox.classList.contains('open'))return;if(event.key==='Escape')closeBox();if(event.key==='ArrowLeft')show(current-1);if(event.key==='ArrowRight')show(current+1)});
+    document.querySelector('.lightbox-prev').addEventListener('click',function(){show(current-1)});
+    document.querySelector('.lightbox-next').addEventListener('click',function(){show(current+1)});
+    addEventListener('keydown',function(event){if(!lightbox.classList.contains('open'))return;if(event.key==='Escape')closeBox();if(event.key==='ArrowLeft')show(current-1);if(event.key==='ArrowRight')show(current+1)});
 
     const revealNodes=document.querySelectorAll('.reveal');
-    if('IntersectionObserver' in window){const observer=new IntersectionObserver(entries=>entries.forEach(entry=>{if(entry.isIntersecting){entry.target.classList.add('is-visible');observer.unobserve(entry.target)}}),{threshold:.08});revealNodes.forEach(node=>observer.observe(node))}else{revealNodes.forEach(node=>node.classList.add('is-visible'))}
+    if('IntersectionObserver' in window){const observer=new IntersectionObserver(function(entries){entries.forEach(function(entry){if(entry.isIntersecting){entry.target.classList.add('is-visible');observer.unobserve(entry.target)}})},{threshold:.08});revealNodes.forEach(function(node){observer.observe(node)})}else{revealNodes.forEach(function(node){node.classList.add('is-visible')})}
 
-    const timelineNodes=document.querySelectorAll('.timeline-node:not(:disabled)');
-    timelineNodes.forEach(node=>node.addEventListener('click',()=>{
-      timelineNodes.forEach(item=>{item.classList.remove('active');item.setAttribute('aria-selected','false')});
-      node.classList.add('active');node.setAttribute('aria-selected','true');
-      const month=Number(node.dataset.month.slice(-2));
-      document.querySelector('.timeline-progress i').style.width=(month/12*100)+'%';
-      document.querySelector('.timeline-progress-label').textContent=String(month).padStart(2,'0')+' / 12';
-      document.querySelectorAll('.photo-card[data-month]').forEach(card=>{card.hidden=card.dataset.month!==node.dataset.month});
-    }));
+    function renderYearTabs(){
+      const years=Array.from(new Set(albums.map(function(album){return Number(album.year)}))).sort(function(a,b){return b-a});
+      document.getElementById('timeline-years').innerHTML=years.length>1?years.map(function(year){return '<button type="button" data-year="'+year+'" class="'+(year===selectedYear?'active':'')+'">'+year+'</button>'}).join(''):'';
+      document.querySelectorAll('#timeline-years button').forEach(function(button){button.addEventListener('click',function(){selectedYear=Number(button.dataset.year);const next=albums.find(function(album){return Number(album.year)===selectedYear});if(next)selectAlbum(next);renderYearTabs()})});
+    }
+    function renderTimeline(){
+      const nodes=[];
+      for(let month=1;month<=12;month+=1){const album=albums.find(function(item){return Number(item.year)===selectedYear&&Number(item.month)===month});const id=String(selectedYear)+'-'+String(month).padStart(2,'0');const active=periodId(activeAlbum)===id;nodes.push('<button type="button" role="tab" class="timeline-node'+(active?' active':'')+'" data-month="'+id+'" aria-selected="'+active+'" aria-controls="timeline-gallery" aria-label="'+selectedYear+' 年 '+String(month).padStart(2,'0')+' 月'+(album?'':'，暂无作品')+'"'+(album?'':' disabled')+'><span class="timeline-dot" aria-hidden="true"></span><span>'+String(month).padStart(2,'0')+'</span></button>')}
+      const track=document.getElementById('timeline-track');track.innerHTML=nodes.join('');track.setAttribute('aria-label',selectedYear+' 年摄影作品时间轴');document.getElementById('timeline-year').textContent=selectedYear;
+      track.querySelectorAll('.timeline-node:not(:disabled)').forEach(function(node){node.addEventListener('click',function(){const album=albums.find(function(item){return periodId(item)===node.dataset.month});if(album)selectAlbum(album)})});
+    }
+    function renderGallery(){
+      works=allPhotos.filter(function(photo){return String(photo.album_id)===String(activeAlbum.id)});
+      document.getElementById('nav-period').textContent=String(activeAlbum.year)+'.'+String(activeAlbum.month).padStart(2,'0');
+      document.getElementById('archive-count').textContent=works.length+' photographs';
+      document.getElementById('month-heading').textContent=String(activeAlbum.year)+' / '+String(activeAlbum.month).padStart(2,'0');
+      document.getElementById('month-name').textContent=(activeAlbum.title_en||'')+(activeAlbum.title_zh?' · '+activeAlbum.title_zh:'');
+      document.getElementById('month-description').textContent=activeAlbum.description||'';
+      document.querySelector('.timeline-progress i').style.width=(Number(activeAlbum.month)/12*100)+'%';
+      document.querySelector('.timeline-progress-label').textContent=String(activeAlbum.month).padStart(2,'0')+' / 12';
+      document.getElementById('gallery-grid').innerHTML=works.map(function(work,index){return '<article class="photo-card"><button type="button" class="photo-button" data-index="'+index+'" aria-label="全屏查看：'+escapeHtml(work.title_zh||'摄影作品')+'"><span class="photo-frame"><img src="'+escapeHtml(work.image_url)+'" alt="'+escapeHtml(work.alt_text||work.title_zh||'摄影作品')+'" loading="lazy"></span><span class="view-cue">查看大图</span></button><div class="photo-info"><div><h4>'+escapeHtml(work.title_zh||'未命名')+'</h4><p>'+escapeHtml(work.title_en||'Untitled')+'</p></div><span>'+String(index+1).padStart(2,'0')+'</span></div></article>'}).join('');
+      bindPhotoButtons();
+    }
+    function selectAlbum(album){activeAlbum=album;selectedYear=Number(album.year);closeBox();renderTimeline();renderGallery();renderYearTabs()}
+    selectAlbum(activeAlbum);
 
     const counterEndpoint='https://counterapi.com/api/douzt12.github.io/view/home';
     const counted=sessionStorage.getItem('douzt-view-counted')==='1';
-    fetch(counterEndpoint+'?'+(counted?'readOnly=true':'unique=true')).then(response=>{if(!response.ok)throw new Error();return response.json()}).then(data=>{document.getElementById('view-count').textContent=new Intl.NumberFormat('zh-CN').format(Number(data.value)||0);sessionStorage.setItem('douzt-view-counted','1')}).catch(()=>{document.getElementById('view-count').textContent='—'});
+    fetch(counterEndpoint+'?'+(counted?'readOnly=true':'unique=true')).then(function(response){if(!response.ok)throw new Error();return response.json()}).then(function(data){document.getElementById('view-count').textContent=new Intl.NumberFormat('zh-CN').format(Number(data.value)||0);sessionStorage.setItem('douzt-view-counted','1')}).catch(function(){document.getElementById('view-count').textContent='—'});
 
     const messageList=document.getElementById('message-list');
     const guestbookConfig=window.DOUZT_GUESTBOOK_CONFIG||{};
-    const rawSupabaseUrl=String(guestbookConfig.supabaseUrl||'');
-    const supabaseUrl=rawSupabaseUrl.endsWith('/')?rawSupabaseUrl.slice(0,-1):rawSupabaseUrl;
+    const supabaseUrl=String(guestbookConfig.supabaseUrl||'').replace(/\/$/,'');
     const supabaseKey=String(guestbookConfig.supabasePublishableKey||'');
     const guestbookReady=Boolean(supabaseUrl&&supabaseKey);
-    const guestbookHeaders=(extra={})=>{const headers={apikey:supabaseKey,'Content-Type':'application/json',...extra};if(!supabaseKey.startsWith('sb_publishable_'))headers.Authorization='Bearer '+supabaseKey;return headers};
-    function escapeHtml(value){const node=document.createElement('span');node.textContent=value;return node.innerHTML}
+    const guestbookHeaders=function(extra){const headers=Object.assign({apikey:supabaseKey,'Content-Type':'application/json'},extra||{});if(!supabaseKey.startsWith('sb_publishable_'))headers.Authorization='Bearer '+supabaseKey;return headers};
+    function splitQuote(value){const quote=String(value||'').trim();if(quote==='The image itself has not changed.')return ['The image itself','has not changed.'];const words=quote.split(/s+/).filter(Boolean);if(words.length<6)return [quote];const middle=Math.ceil(words.length/2);return [words.slice(0,middle).join(' '),words.slice(middle).join(' ')]}
+    function loadPortfolio(){
+      if(!guestbookReady)return;
+      const headers=guestbookHeaders();
+      Promise.all([
+        fetch(supabaseUrl+'/rest/v1/portfolio_albums?select=id,year,month,title_zh,title_en,description,sort_order&published=eq.true&order=year.desc,month.desc,sort_order.desc',{headers:headers}),
+        fetch(supabaseUrl+'/rest/v1/portfolio_photos?select=id,album_id,image_url,title_zh,title_en,alt_text,caption,sort_order&published=eq.true&order=sort_order.asc,created_at.asc',{headers:headers}),
+        fetch(supabaseUrl+'/rest/v1/site_settings?select=hero_image_url,quote_text,quote_author,about_text&id=eq.main&limit=1',{headers:headers})
+      ]).then(function(responses){if(responses.some(function(response){return !response.ok}))throw new Error();return Promise.all(responses.map(function(response){return response.json()}))}).then(function(rows){
+        if(rows[0].length){albums=rows[0];allPhotos=rows[1];selectAlbum(albums[0])}
+        const settings=rows[2][0];if(!settings)return;
+        if(settings.hero_image_url)document.getElementById('hero-image').src=settings.hero_image_url;
+        if(settings.quote_text)document.getElementById('hero-title').innerHTML=splitQuote(settings.quote_text).map(function(line){return '<span>'+escapeHtml(line)+'</span>'}).join('');
+        if(settings.quote_author)document.getElementById('quote-credit').textContent='—— '+settings.quote_author;
+        if(settings.about_text)document.getElementById('about-description').textContent=settings.about_text;
+      }).catch(function(){})
+    }
+    loadPortfolio();
+
     function formatDate(value){return new Intl.DateTimeFormat('zh-CN',{year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date(value))}
     function loadMessages(){
       if(!guestbookReady){messageList.innerHTML='<p class="board-state">免登录留言正在配置。</p>';return}
       messageList.innerHTML='<p class="board-state">正在读取留言……</p>';
-      fetch(supabaseUrl+'/rest/v1/guestbook_messages?select=id,name,message,created_at&order=created_at.desc&limit=50',{headers:guestbookHeaders()}).then(response=>{if(!response.ok)throw new Error();return response.json()}).then(messages=>{
+      return fetch(supabaseUrl+'/rest/v1/guestbook_messages?select=id,name,message,created_at&order=created_at.desc&limit=50',{headers:guestbookHeaders()}).then(function(response){if(!response.ok)throw new Error();return response.json()}).then(function(messages){
         document.getElementById('message-count').textContent=messages.length+' messages';
         if(!messages.length){messageList.innerHTML='<p class="board-state">还没有留言。</p>';return}
-        messageList.innerHTML=messages.map(item=>'<article class="message-item"><header><strong>'+escapeHtml(item.name||'访客')+'</strong><time datetime="'+escapeHtml(item.created_at)+'">'+formatDate(item.created_at)+'</time></header><p>'+escapeHtml(item.message)+'</p></article>').join('');
-      }).catch(()=>{messageList.innerHTML='<p class="board-state">留言暂时无法读取。<button type="button" id="reload-messages">重新加载</button></p>';document.getElementById('reload-messages').addEventListener('click',loadMessages)});
+        messageList.innerHTML=messages.map(function(item){return '<article class="message-item"><header><strong>'+escapeHtml(item.name||'访客')+'</strong><time datetime="'+escapeHtml(item.created_at)+'">'+formatDate(item.created_at)+'</time></header><p>'+escapeHtml(item.message)+'</p></article>'}).join('');
+      }).catch(function(){messageList.innerHTML='<p class="board-state">留言暂时无法读取。<button type="button" id="reload-messages">重新加载</button></p>';document.getElementById('reload-messages').addEventListener('click',loadMessages)});
     }
     loadMessages();
     const guestMessage=document.getElementById('guest-message');
     const guestForm=document.getElementById('guestbook-form');
     const guestSubmit=guestForm.querySelector('button[type="submit"]');
     if(!guestbookReady)guestSubmit.disabled=true;
-    guestMessage.addEventListener('input',()=>{document.getElementById('character-count').textContent=guestMessage.value.length+' / 300'});
-    guestForm.addEventListener('submit',async event=>{
-      event.preventDefault();
-      const name=document.getElementById('guest-name').value.trim()||'访客';
-      const message=guestMessage.value.trim();
-      if(!guestbookReady||!message)return;
-      guestSubmit.disabled=true;guestSubmit.textContent='正在提交…';
-      try{
-        const response=await fetch(supabaseUrl+'/rest/v1/guestbook_messages',{method:'POST',headers:guestbookHeaders({Prefer:'return=minimal'}),body:JSON.stringify({name,message})});
-        if(!response.ok)throw new Error();
-        document.getElementById('guest-name').value='';guestMessage.value='';document.getElementById('character-count').textContent='0 / 300';guestSubmit.textContent='已提交';await loadMessages();setTimeout(()=>{guestSubmit.disabled=false;guestSubmit.innerHTML='公开留言 <span aria-hidden="true">→</span>'},1600);
-      }catch{guestSubmit.disabled=false;guestSubmit.textContent='重试提交'}
+    guestMessage.addEventListener('input',function(){document.getElementById('character-count').textContent=guestMessage.value.length+' / 300'});
+    guestForm.addEventListener('submit',async function(event){
+      event.preventDefault();const name=document.getElementById('guest-name').value.trim()||'访客';const message=guestMessage.value.trim();if(!guestbookReady||!message)return;guestSubmit.disabled=true;guestSubmit.textContent='正在提交…';
+      try{const response=await fetch(supabaseUrl+'/rest/v1/guestbook_messages',{method:'POST',headers:guestbookHeaders({Prefer:'return=minimal'}),body:JSON.stringify({name:name,message:message})});if(!response.ok)throw new Error();document.getElementById('guest-name').value='';guestMessage.value='';document.getElementById('character-count').textContent='0 / 300';guestSubmit.textContent='已提交';await loadMessages();setTimeout(function(){guestSubmit.disabled=false;guestSubmit.innerHTML='公开留言 <span aria-hidden="true">→</span>'},1600)}catch(error){guestSubmit.disabled=false;guestSubmit.textContent='重试提交'}
     });
   </script>
 </body>
