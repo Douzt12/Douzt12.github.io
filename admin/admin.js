@@ -10,6 +10,7 @@
 
   const state = {
     session: null,
+    rememberLogin: false,
     albums: [],
     photos: [],
     messages: [],
@@ -101,9 +102,13 @@
     return parseResponse(response);
   }
 
-  function saveSession(session) {
+  function saveSession(session, rememberLogin = state.rememberLogin) {
     state.session = session;
-    sessionStorage.setItem(SESSION_KEY, JSON.stringify(session));
+    state.rememberLogin = Boolean(rememberLogin);
+    const targetStorage = state.rememberLogin ? localStorage : sessionStorage;
+    const otherStorage = state.rememberLogin ? sessionStorage : localStorage;
+    targetStorage.setItem(SESSION_KEY, JSON.stringify(session));
+    otherStorage.removeItem(SESSION_KEY);
   }
 
   function showAdmin() {
@@ -136,7 +141,9 @@
 
   function signOut(showMessage = true) {
     state.session = null;
+    state.rememberLogin = false;
     sessionStorage.removeItem(SESSION_KEY);
+    localStorage.removeItem(SESSION_KEY);
     loginView.hidden = false;
     adminView.hidden = true;
     sessionPanel.hidden = true;
@@ -442,6 +449,14 @@
     const style = doc.createElement("style");
     style.textContent = `[data-inline-field]{cursor:text;border-radius:4px;transition:outline-color .16s ease,background .16s ease}[data-inline-field]:hover{outline:2px dashed #0969da;outline-offset:4px}[data-inline-field]:focus{outline:3px solid #0969da;outline-offset:5px;background:#ddf4ff}.admin-image-edit{cursor:pointer!important;transition:outline-color .16s ease}.admin-image-edit:hover{outline:3px solid #0969da;outline-offset:-3px}.admin-saving{opacity:.55}.photo-card,.month-bar{position:relative}.admin-photo-tools,.admin-month-tools{position:absolute;z-index:9;display:flex;gap:4px;padding:5px;background:rgba(31,35,40,.9);border-radius:7px;box-shadow:0 6px 18px rgba(31,35,40,.18)}.admin-photo-tools{top:9px;right:9px}.admin-month-tools{right:12px;bottom:10px}.admin-photo-tools button,.admin-month-tools button{padding:5px 7px;color:#fff;background:transparent;border:1px solid rgba(255,255,255,.35);border-radius:5px;font:600 11px -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;cursor:pointer}.admin-photo-tools button:hover,.admin-month-tools button:hover{background:#0969da}.lightbox{display:none!important}`;
     doc.head.appendChild(style);
+    let heightFrame = 0;
+    const syncPreviewHeight = () => {
+      window.cancelAnimationFrame(heightFrame);
+      heightFrame = window.requestAnimationFrame(() => {
+        const height = Math.max(doc.documentElement.scrollHeight, doc.body.scrollHeight, window.innerHeight);
+        frame.style.height = `${height}px`;
+      });
+    };
     const decorate = () => {
       const album = previewAlbum(doc);
       const photos = album ? albumPhotos(album.id) : [];
@@ -483,11 +498,33 @@
         tools.innerHTML = `<button type="button" data-admin-action="upload-month" data-album-id="${album.id}">＋ 批量上传</button><button type="button" data-admin-action="delete-album" data-album-id="${album.id}">删除本月</button>`;
         monthBar.appendChild(tools);
       }
+      syncPreviewHeight();
     };
     decorate();
     const observer = new MutationObserver(decorate);
     observer.observe(doc.body, { childList: true, subtree: true });
+    if ("ResizeObserver" in window) {
+      const resizeObserver = new ResizeObserver(syncPreviewHeight);
+      resizeObserver.observe(doc.documentElement);
+      resizeObserver.observe(doc.body);
+    }
+    doc.querySelectorAll("img").forEach((image) => {
+      if (!image.complete) image.addEventListener("load", syncPreviewHeight, { once: true });
+    });
+    window.setTimeout(syncPreviewHeight, 250);
     doc.addEventListener("click", (event) => {
+      const internalLink = event.target.closest('a[href^="#"]');
+      if (internalLink) {
+        const target = doc.querySelector(internalLink.getAttribute("href"));
+        if (target) {
+          event.preventDefault();
+          event.stopPropagation();
+          const frameTop = frame.getBoundingClientRect().top + window.scrollY;
+          const targetTop = target.getBoundingClientRect().top + (doc.defaultView?.scrollY || 0);
+          window.scrollTo({ top: Math.max(0, frameTop + targetTop - 72), behavior: "smooth" });
+          return;
+        }
+      }
       const action = event.target.closest("[data-admin-action]");
       if (action) {
         event.preventDefault(); event.stopPropagation();
@@ -568,8 +605,9 @@
     setFormState(output, "正在登录……");
     try {
       if (!supabaseUrl || !publishableKey) throw new Error("网站连接信息尚未配置。");
+      const rememberLogin = $("#remember-login").checked;
       const session = await authenticate($("#login-email").value.trim().toLowerCase(), $("#login-password").value);
-      saveSession(session);
+      saveSession(session, rememberLogin);
       showAdmin();
       await loadAll();
       setFormState(output);
@@ -776,14 +814,17 @@
 
   async function restore() {
     resetAlbumForm();
-    const stored = sessionStorage.getItem(SESSION_KEY);
+    const persistentSession = localStorage.getItem(SESSION_KEY);
+    const stored = persistentSession || sessionStorage.getItem(SESSION_KEY);
+    state.rememberLogin = Boolean(persistentSession);
+    $("#remember-login").checked = state.rememberLogin;
     if (!stored) return;
     try {
       let session = JSON.parse(stored);
       const expiresAt = Number(session.expires_at || 0) * 1000;
       if (expiresAt && expiresAt < Date.now() + 30000 && session.refresh_token) session = await refreshSession(session.refresh_token);
       if (String(session.user?.email || "").toLowerCase() !== ADMIN_EMAIL) throw new Error("wrong account");
-      saveSession(session);
+      saveSession(session, state.rememberLogin);
       showAdmin();
       await loadAll();
     } catch { signOut(false); }

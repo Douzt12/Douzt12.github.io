@@ -28,6 +28,7 @@
       <form id="login-form">
         <label><span>管理员邮箱</span><input id="login-email" type="email" value="1766847587@qq.com" readonly></label>
         <label><span>密码</span><input id="login-password" type="password" required autocomplete="current-password" placeholder="输入你在 Supabase 设置的密码"></label>
+        <label class="remember-row"><input id="remember-login" type="checkbox"><span>记住账号和登录状态（下次免输密码）</span></label>
         <button class="primary-button" type="submit">登录摄影后台</button>
         <p class="form-state" id="login-state" aria-live="polite"></p>
       </form>
@@ -40,7 +41,7 @@
         <div><p class="overline">Visual editor / 可视化编辑</p><h1>直接在页面上修改。</h1><p>点击文字即可输入，离开时自动保存；点击首图或作品图片即可选择替换。页面不会跳转。</p></div>
         <div class="visual-actions"><button class="secondary-button" type="button" id="visual-new-album">＋ 新月份</button><button class="secondary-button" type="button" id="visual-upload">＋ 上传照片</button><button class="secondary-button" type="button" id="visual-refresh">刷新预览</button></div>
       </header>
-      <div class="preview-shell"><iframe id="public-preview" title="DOUZT 网站可视化编辑预览" src="../"></iframe><div class="preview-note">文字点击修改 · 图片点击替换</div></div>
+      <div class="preview-shell"><iframe id="public-preview" title="DOUZT 网站可视化编辑预览" src="../" scrolling="no"></iframe><div class="preview-note">文字点击修改 · 图片点击替换</div></div>
     </section>
 
     <dialog class="quick-dialog" id="quick-album-dialog">
