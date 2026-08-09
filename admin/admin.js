@@ -111,6 +111,27 @@
     adminView.hidden = false;
     sessionPanel.hidden = false;
     $("#session-email").textContent = ADMIN_EMAIL;
+    showVisual();
+  }
+
+  function showVisual() {
+    $("#visual-view").hidden = false;
+    $("#advanced-view").hidden = true;
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function showAdvanced(targetId) {
+    $("#visual-view").hidden = true;
+    $("#advanced-view").hidden = false;
+    window.setTimeout(() => {
+      const target = targetId ? document.getElementById(targetId) : $("#advanced-view");
+      target?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 0);
+  }
+
+  function refreshPreview() {
+    const frame = $("#public-preview");
+    if (frame) frame.src = `../?edit-refresh=${Date.now()}`;
   }
 
   function signOut(showMessage = true) {
@@ -202,6 +223,7 @@
     renderPhotos();
     renderMessages();
     fillSettings();
+    refreshPreview();
   }
 
   function resetAlbumForm() {
@@ -227,7 +249,47 @@
     $("#album-description").value = album.description;
     $("#album-published").checked = album.published;
     $("#album-form-mode").textContent = "编辑";
-    $("#albums").scrollIntoView({ behavior: "smooth" });
+    showAdvanced("albums");
+  }
+
+  function openPhotoEditor(index, albumId) {
+    state.selectedAlbumId = Number(albumId);
+    populateAlbumSelects();
+    renderPhotos();
+    showAdvanced("photos");
+    window.setTimeout(() => {
+      const card = $("#photo-list").children[index];
+      card?.scrollIntoView({ behavior: "smooth", block: "center" });
+      card?.classList.add("editor-focus");
+      window.setTimeout(() => card?.classList.remove("editor-focus"), 1800);
+    }, 350);
+  }
+
+  function bindVisualPreview() {
+    const frame = $("#public-preview");
+    let doc;
+    try { doc = frame.contentDocument; } catch { return; }
+    if (!doc?.body) return;
+    const style = doc.createElement("style");
+    style.textContent = `.hero-visual,.hero-copy,.month-bar,.photo-card,#guestbook,#about{cursor:pointer;transition:outline-color .16s ease,outline-offset .16s ease}.hero-visual:hover,.hero-copy:hover,.month-bar:hover,.photo-card:hover,#guestbook:hover,#about:hover{outline:3px solid #0969da;outline-offset:-3px}.photo-button{pointer-events:none}.lightbox{display:none!important}`;
+    doc.head.appendChild(style);
+    doc.addEventListener("click", (event) => {
+      if (event.target.closest(".timeline-node")) return;
+      const editable = event.target.closest(".hero-visual,.hero-copy,.month-bar,.photo-card,#guestbook,#about");
+      if (!editable) return;
+      event.preventDefault();
+      event.stopPropagation();
+      if (editable.matches(".hero-visual,.hero-copy,#about")) return showAdvanced("site-settings");
+      if (editable.matches("#guestbook")) return showAdvanced("messages");
+      const text = doc.querySelector(".month-bar h3")?.textContent || "";
+      const match = text.match(/(\d{4})\s*\/\s*(\d{1,2})/);
+      const album = match && state.albums.find((item) => Number(item.year) === Number(match[1]) && Number(item.month) === Number(match[2]));
+      if (editable.matches(".month-bar")) return album ? editAlbum(album.id) : showAdvanced("albums");
+      if (editable.matches(".photo-card") && album) {
+        const cards = [...doc.querySelectorAll(".photo-card")];
+        return openPhotoEditor(cards.indexOf(editable), album.id);
+      }
+    });
   }
 
   async function prepareWebImage(file, maxSide = 2400) {
@@ -292,6 +354,13 @@
   });
 
   $("#sign-out").addEventListener("click", () => signOut());
+  $("#show-visual").addEventListener("click", showVisual);
+  $("#show-advanced").addEventListener("click", () => showAdvanced());
+  $("#back-visual").addEventListener("click", showVisual);
+  $("#visual-refresh").addEventListener("click", refreshPreview);
+  $("#visual-new-album").addEventListener("click", () => { resetAlbumForm(); showAdvanced("albums"); });
+  $("#visual-upload").addEventListener("click", () => showAdvanced("photos"));
+  $("#public-preview").addEventListener("load", bindVisualPreview);
   $("#reset-album").addEventListener("click", resetAlbumForm);
   $("#album-month").innerHTML = monthNamesZh.map((name, index) => `<option value="${index + 1}">${String(index + 1).padStart(2, "0")} · ${name}</option>`).join("");
   $("#album-month").addEventListener("change", (event) => {
