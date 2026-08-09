@@ -342,7 +342,7 @@ footer > a:last-child { color: var(--accent); }
     const supabaseUrl=rawSupabaseUrl.endsWith('/')?rawSupabaseUrl.slice(0,-1):rawSupabaseUrl;
     const supabaseKey=String(guestbookConfig.supabasePublishableKey||'');
     const guestbookReady=Boolean(supabaseUrl&&supabaseKey);
-    const guestbookHeaders=(extra={})=>({apikey:supabaseKey,Authorization:'Bearer '+supabaseKey,'Content-Type':'application/json',...extra});
+    const guestbookHeaders=(extra={})=>{const headers={apikey:supabaseKey,'Content-Type':'application/json',...extra};if(!supabaseKey.startsWith('sb_publishable_'))headers.Authorization='Bearer '+supabaseKey;return headers};
     function escapeHtml(value){const node=document.createElement('span');node.textContent=value;return node.innerHTML}
     function formatDate(value){return new Intl.DateTimeFormat('zh-CN',{year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date(value))}
     function loadMessages(){
