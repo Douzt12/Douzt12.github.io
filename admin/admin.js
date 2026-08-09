@@ -7,6 +7,17 @@
   const DRAFT_KEY = "douzt-admin-content-draft";
   const RICH_TEXT_PREFIX = "__douzt_rich__:";
   const HERO_SOURCES_PREFIX = "__douzt_hero__:";
+  const DEFAULT_ABOUT = {
+    kicker: "About / 关于",
+    title: "DOUZT",
+    mediaLabel: "媒介",
+    mediaBw: "Black & white film",
+    mediaColor: "Color photography",
+    updateLabel: "更新",
+    updateValue: "Monthly",
+    locationLabel: "地点",
+    locationValue: "China",
+  };
   const config = window.DOUZT_GUESTBOOK_CONFIG || {};
   const supabaseUrl = String(config.supabaseUrl || "").replace(/\/$/, "");
   const publishableKey = String(config.supabasePublishableKey || "");
@@ -100,6 +111,13 @@
 
   function packHeroSources(sources) {
     return `${HERO_SOURCES_PREFIX}${JSON.stringify({ bw: sources.bw, color: sources.color })}`;
+  }
+
+  function unpackAboutSettings(value) {
+    try {
+      const parsed = JSON.parse(String(value || ""));
+      return parsed && typeof parsed === "object" ? { ...DEFAULT_ABOUT, ...parsed } : { ...DEFAULT_ABOUT };
+    } catch { return { ...DEFAULT_ABOUT }; }
   }
 
   function applyRichStyle(element, style = {}) {
@@ -414,6 +432,7 @@
 
   function storedInlineValue(field, id) {
     if (field === "quote_text" || field === "quote_author") return state.settings?.[field] || "";
+    if (field.startsWith("about_")) return unpackAboutSettings(state.settings?.about_text)[field.slice(6)] || "";
     if (field === "album_description") return state.albums.find((item) => String(item.id) === String(id))?.description || "";
     if (field === "album_titles") return state.albums.find((item) => String(item.id) === String(id))?.title_en || "";
     if (field === "photo_title_zh") return state.photos.find((item) => String(item.id) === String(id))?.title_zh || "";
@@ -432,6 +451,13 @@
       const packed = packRichValue(text, style);
       state.settings = { id: "main", ...(state.settings || {}), [field]: packed };
       queueOperation({ type: "settingPatch", patch: { [field]: packed } });
+    }
+    if (field.startsWith("about_")) {
+      const about = unpackAboutSettings(state.settings?.about_text);
+      about[field.slice(6)] = packRichValue(value, style);
+      const packed = JSON.stringify(about);
+      state.settings = { id: "main", ...(state.settings || {}), about_text: packed };
+      queueOperation({ type: "settingPatch", patch: { about_text: packed } });
     }
     if (field === "album_description") {
       const packed = packRichValue(value, style);
@@ -661,12 +687,19 @@
         [doc.querySelector("#quote-credit"), "quote_author", ""],
         [doc.querySelector("#month-description"), "album_description", album?.id],
         [doc.querySelector("#month-name"), "album_titles", album?.id],
+        [doc.querySelector("#about-kicker"), "about_kicker", ""],
+        [doc.querySelector("#about-title"), "about_title", ""],
+        [doc.querySelector("#about-media-label"), "about_mediaLabel", ""],
+        [doc.querySelector("#about-media"), previewCollection(doc) === "color" ? "about_mediaColor" : "about_mediaBw", ""],
+        [doc.querySelector("#about-update-label"), "about_updateLabel", ""],
+        [doc.querySelector("#about-update-value"), "about_updateValue", ""],
+        [doc.querySelector("#about-location-label"), "about_locationLabel", ""],
+        [doc.querySelector("#about-location-value"), "about_locationValue", ""],
       ];
       doc.querySelectorAll(".photo-card").forEach((card, index) => {
         const photo = photos[index];
         if (!photo) return;
         fields.push([card.querySelector(".photo-info h4"), "photo_title_zh", photo.id]);
-        fields.push([card.querySelector(".photo-info p"), "photo_title_en", photo.id]);
         const image = card.querySelector(".photo-frame img");
         if (image) { image.dataset.photoId = photo.id; image.title = "点击适屏查看；替换请使用上方按钮"; }
         if (!card.querySelector(".admin-photo-tools")) {

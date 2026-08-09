@@ -74,7 +74,6 @@ html[data-theme="color"] .hero-copy h1 { color: #ffffff; }
 html[data-theme="color"] .quote-credit { color: #e1e9ff; }
 html[data-theme="color"] .month-bar,
 html[data-theme="color"] .guestbook-form { background: #f7f9fc; }
-html[data-theme="color"] .empty-month { background: #fbfcfe; }
 html[data-theme="color"] .timeline-progress { background: #e8edf5; }
 html[data-theme="color"] .timeline-progress i { background: var(--klein); }
 html[data-theme="color"] .form-actions button { color: #ffffff; background: var(--klein); border-color: var(--klein); }
@@ -158,11 +157,6 @@ html[data-theme="color"] footer .brand { color: var(--ink); }
 .photo-info h4 { margin: 0; font-size: 0.84rem; font-weight: 600; }
 .photo-info p { margin: 4px 0 0; color: var(--muted); font-size: 0.72rem; }
 .photo-info > span { color: var(--muted); font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: 0.68rem; }
-.empty-month { display: grid; grid-template-columns: auto 1fr auto; gap: 13px; align-items: center; margin-top: 16px; padding: 17px; background: rgba(255, 255, 255, 0.58); border: 1px dashed var(--border); border-radius: 9px; color: var(--muted); }
-.empty-month strong { color: var(--ink); font-size: 0.82rem; }
-.empty-month p { margin: 3px 0 0; font-size: 0.76rem; }
-.empty-month > span:last-child { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.07em; }
-
 .about-card { display: flex; flex-direction: column; align-items: center; gap: 28px; margin: 24px 0 0; padding: 42px 40px; text-align: center; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; box-shadow: var(--shadow); }
 .about-identity { display: flex; flex-direction: column; align-items: center; }
 .about-identity .overline { margin-bottom: 24px; }
@@ -317,7 +311,6 @@ footer > a:last-child { color: var(--accent); }
           <header class="month-bar"><div><span class="folder-icon" aria-hidden="true"></span><h3 id="month-heading">2026 / 08</h3><span class="month-name" id="month-name">August · 八月</span></div><p id="month-description">房间，以及被光触碰过的日常。</p></header>
           <div class="gallery-grid" id="gallery-grid"><article class="photo-card"><button type="button" class="photo-button" data-index="0" aria-label="全屏查看：倾斜的房间"><span class="photo-frame"><img src="room-01.jpg" alt="倾斜视角下的黑白房间、帘子与生活用品" loading="lazy"></span><span class="view-cue">查看大图</span></button><div class="photo-info"><div><h4>倾斜的房间</h4></div><span>01</span></div></article><article class="photo-card"><button type="button" class="photo-button" data-index="1" aria-label="全屏查看：窗边的手势"><span class="photo-frame"><img src="room-02.jpg" alt="窗边一只扶着瓶子的手，墙上落着模糊树影" loading="lazy"></span><span class="view-cue">查看大图</span></button><div class="photo-info"><div><h4>窗边的手势</h4></div><span>02</span></div></article><article class="photo-card"><button type="button" class="photo-button" data-index="2" aria-label="全屏查看：走廊还在延伸"><span class="photo-frame"><img src="room-03.jpg" alt="晾着衣物的幽深黑白走廊，尽头有一束光" loading="lazy"></span><span class="view-cue">查看大图</span></button><div class="photo-info"><div><h4>走廊还在延伸</h4></div><span>03</span></div></article></div>
         </article>
-        <div class="empty-month reveal"><span class="folder-icon" aria-hidden="true"></span><div><strong>Next month</strong><p>下一卷，待冲洗。</p></div><span>Coming soon</span></div>
       </div>
     </section>
 
@@ -332,8 +325,8 @@ footer > a:last-child { color: var(--accent); }
     </section>
 
     <section class="about-card reveal" id="about">
-      <div class="about-identity"><p class="overline">About / 关于</p><h2>DOUZT</h2></div>
-      <div class="about-profile-copy"><dl><div><dt>媒介</dt><dd id="about-media">Black &amp; white film</dd></div><div><dt>更新</dt><dd>Monthly</dd></div><div><dt>地点</dt><dd>China</dd></div></dl></div>
+      <div class="about-identity"><p class="overline" id="about-kicker">About / 关于</p><h2 id="about-title">DOUZT</h2></div>
+      <div class="about-profile-copy"><dl><div><dt id="about-media-label">媒介</dt><dd id="about-media">Black &amp; white film</dd></div><div><dt id="about-update-label">更新</dt><dd id="about-update-value">Monthly</dd></div><div><dt id="about-location-label">地点</dt><dd id="about-location-value">China</dd></div></dl></div>
     </section>
   </main>
 
@@ -361,15 +354,19 @@ footer > a:last-child { color: var(--accent); }
     let selectedYear=2026;
     const heroSourcesPrefix='__douzt_hero__:';
     let heroSources={bw:'hero-pavilion-square.png',color:'hero-pavilion-color.jpg'};
+    const defaultAbout={kicker:'About / 关于',title:'DOUZT',mediaLabel:'媒介',mediaBw:'Black & white film',mediaColor:'Color photography',updateLabel:'更新',updateValue:'Monthly',locationLabel:'地点',locationValue:'China'};
+    let aboutSettings=Object.assign({},defaultAbout);
     const lightbox=document.querySelector('.lightbox');
     const full=document.querySelector('.lightbox-image img');
     let current=0;
     const richTextPrefix='__douzt_rich__:';
     function escapeHtml(value){const node=document.createElement('span');node.textContent=value==null?'':String(value);return node.innerHTML}
     function unpackRichText(value,fallback){const source=value==null||value===''?String(fallback||''):String(value);if(!source.startsWith(richTextPrefix))return{text:source,style:{}};try{const parsed=JSON.parse(source.slice(richTextPrefix.length));return{text:String(parsed.text||fallback||''),style:parsed.style&&typeof parsed.style==='object'?parsed.style:{}}}catch(error){return{text:source,style:{}}}}
+    function unpackAboutSettings(value){try{const parsed=JSON.parse(String(value||''));return parsed&&typeof parsed==='object'?Object.assign({},defaultAbout,parsed):Object.assign({},defaultAbout)}catch(error){return Object.assign({},defaultAbout)}}
     function richStyle(style){const rules=[];const size=Number(style&&style.fontSize);if(Number.isFinite(size)&&size>=10&&size<=96)rules.push('font-size:'+size+'px');if(style&&style.bold)rules.push('font-weight:700');if(style&&style.italic)rules.push('font-style:italic');if(style&&['left','center','right'].includes(style.align))rules.push('text-align:'+style.align);return rules.join(';')}
     function richSpan(value,fallback){const rich=unpackRichText(value,fallback);return '<span style="'+escapeHtml(richStyle(rich.style))+'">'+escapeHtml(rich.text)+'</span>'}
     function applyRichText(element,value,fallback){const rich=unpackRichText(value,fallback);element.textContent=rich.text;element.style.cssText=richStyle(rich.style);return rich}
+    function renderAbout(){applyRichText(document.getElementById('about-kicker'),aboutSettings.kicker,defaultAbout.kicker);applyRichText(document.getElementById('about-title'),aboutSettings.title,defaultAbout.title);applyRichText(document.getElementById('about-media-label'),aboutSettings.mediaLabel,defaultAbout.mediaLabel);applyRichText(document.getElementById('about-media'),mode==='color'?aboutSettings.mediaColor:aboutSettings.mediaBw,mode==='color'?defaultAbout.mediaColor:defaultAbout.mediaBw);applyRichText(document.getElementById('about-update-label'),aboutSettings.updateLabel,defaultAbout.updateLabel);applyRichText(document.getElementById('about-update-value'),aboutSettings.updateValue,defaultAbout.updateValue);applyRichText(document.getElementById('about-location-label'),aboutSettings.locationLabel,defaultAbout.locationLabel);applyRichText(document.getElementById('about-location-value'),aboutSettings.locationValue,defaultAbout.locationValue)}
     function unpackHeroSources(value){const source=String(value||'');const fallback={bw:'hero-pavilion-square.png',color:'hero-pavilion-color.jpg'};if(!source.startsWith(heroSourcesPrefix))return{bw:source||fallback.bw,color:fallback.color};try{const parsed=JSON.parse(source.slice(heroSourcesPrefix.length));return{bw:String(parsed.bw||fallback.bw),color:String(parsed.color||fallback.color)}}catch(error){return fallback}}
     function periodId(album){return String(album.year)+'-'+String(album.month).padStart(2,'0')}
     function modeAlbums(){const matches=albums.filter(function(album){return String(album.collection||'bw')===mode});return matches.length?matches:fallbackAlbums.filter(function(album){return album.collection===mode})}
@@ -411,7 +408,7 @@ footer > a:last-child { color: var(--accent); }
       bindPhotoButtons();
     }
     function selectAlbum(album){activeAlbum=album;selectedYear=Number(album.year);closeBox();renderTimeline();renderGallery();renderYearTabs()}
-    function selectMode(nextMode){mode=nextMode==='color'?'color':'bw';localStorage.setItem('douzt-photo-mode',mode);document.documentElement.dataset.theme=mode;document.querySelectorAll('[data-mode]').forEach(function(button){const active=button.dataset.mode===mode;button.classList.toggle('active',active);button.setAttribute('aria-pressed',String(active))});document.getElementById('hero-image').src=heroSources[mode];document.getElementById('hero-image').alt='海边完整灯塔、月亮与水面的'+(mode==='color'?'彩色':'黑白')+'照片';document.getElementById('about-media').textContent=mode==='color'?'Color photography':'Black & white film';const next=modeAlbums()[0];if(next)selectAlbum(next)}
+    function selectMode(nextMode){mode=nextMode==='color'?'color':'bw';localStorage.setItem('douzt-photo-mode',mode);document.documentElement.dataset.theme=mode;document.querySelectorAll('[data-mode]').forEach(function(button){const active=button.dataset.mode===mode;button.classList.toggle('active',active);button.setAttribute('aria-pressed',String(active))});document.getElementById('hero-image').src=heroSources[mode];document.getElementById('hero-image').alt='海边完整灯塔、月亮与水面的'+(mode==='color'?'彩色':'黑白')+'照片';renderAbout();const next=modeAlbums()[0];if(next)selectAlbum(next)}
     document.querySelectorAll('[data-mode]').forEach(function(button){button.addEventListener('click',function(){selectMode(button.dataset.mode)})});
     selectMode(mode);
 
@@ -437,7 +434,7 @@ footer > a:last-child { color: var(--accent); }
       ]).then(function(responses){if(responses.some(function(response){return !response.ok}))throw new Error();return Promise.all(responses.map(function(response){return response.json()}))}).then(function(rows){
         if(rows[0].length){albums=rows[0].map(function(album){return Object.assign({},album,{collection:album.collection||'bw'})});allPhotos=rows[1];selectMode(mode)}
         const settings=rows[2][0];if(!settings)return;
-        heroSources=unpackHeroSources(settings.hero_image_url);document.getElementById('hero-image').src=heroSources[mode];
+        heroSources=unpackHeroSources(settings.hero_image_url);document.getElementById('hero-image').src=heroSources[mode];aboutSettings=unpackAboutSettings(settings.about_text);renderAbout();
         if(settings.quote_text){const quote=unpackRichText(settings.quote_text,'好 ≠ 不坏');const heroTitle=document.getElementById('hero-title');heroTitle.innerHTML=splitQuote(quote.text).map(function(line){return '<span>'+escapeHtml(line)+'</span>'}).join('');heroTitle.style.cssText=richStyle(quote.style)}
         if(settings.quote_author){const author=unpackRichText(settings.quote_author,'Bernina Qian');const credit=document.getElementById('quote-credit');credit.textContent='—— '+author.text;credit.style.cssText=richStyle(author.style)}
       }).catch(function(){}).finally(revealHeroCopy)
