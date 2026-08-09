@@ -25,15 +25,15 @@
 }
 
 html[data-theme="color"] {
-  --canvas: #f2f5fc;
-  --surface: #ffffff;
-  --ink: #082266;
-  --muted: #52648f;
-  --border: #b7c7e8;
-  --border-soft: #d8e1f3;
+  --canvas: #f6f7f9;
+  --surface: #fffefa;
+  --ink: #22262d;
+  --muted: #66707d;
+  --border: #d5dbe5;
+  --border-soft: #e4e8ef;
   --accent: #002fa7;
-  --accent-soft: #dce6ff;
-  --shadow: 0 1px 0 rgba(0, 47, 167, 0.07);
+  --accent-soft: #e7ecfb;
+  --shadow: 0 1px 0 rgba(24, 32, 49, 0.04), 0 10px 30px rgba(42, 52, 73, 0.035);
 }
 
 * { box-sizing: border-box; }
@@ -53,20 +53,27 @@ button { color: inherit; font: inherit; }
 .mode-switch button:hover, .mode-switch button:focus-visible { color: var(--accent); }
 .mode-switch button.active { color: #fff; background: var(--ink); box-shadow: var(--shadow); }
 html[data-theme="color"] .mode-switch button.active { background: var(--klein); }
+html[data-theme="color"] .brand-mark { background: var(--klein); }
 .topbar nav a { padding: 7px 10px; border-radius: 6px; }
 .topbar nav a:hover, .topbar nav a:focus-visible { background: rgba(208, 215, 222, 0.4); }
 .nav-status { display: inline-flex; align-items: center; gap: 7px; color: var(--muted); }
 .nav-status i { width: 8px; height: 8px; border-radius: 50%; background: #1a7f37; box-shadow: 0 0 0 3px rgba(26, 127, 55, 0.1); }
 .nav-views { padding-left: 12px; color: var(--muted); border-left: 1px solid var(--border); font-variant-numeric: tabular-nums; }
-html[data-theme="color"] .topbar { background: rgba(242, 245, 252, 0.92); }
-html[data-theme="color"] .month-bar, html[data-theme="color"] .guestbook-form { background: #f2f5fc; }
-html[data-theme="color"] .empty-month { background: rgba(255, 255, 255, 0.72); }
-html[data-theme="color"] .timeline-progress { background: #dce4f3; }
+html[data-theme="color"] .topbar { background: rgba(246, 247, 249, 0.92); }
+html[data-theme="color"] .hero-copy h1 { color: var(--klein); }
+html[data-theme="color"] .quote-credit { color: #4f5865; }
+html[data-theme="color"] .month-bar,
+html[data-theme="color"] .guestbook-form { background: #f8f9fb; }
+html[data-theme="color"] .empty-month { background: rgba(255, 254, 250, 0.72); }
+html[data-theme="color"] .timeline-progress { background: #e4e8ef; }
 html[data-theme="color"] .timeline-progress i, html[data-theme="color"] .form-actions button { background: var(--klein); }
+html[data-theme="color"] .count-badge { color: #4d5b73; background: #f0f2f6; }
 
 .site-content { width: calc(100% - clamp(28px, 4vw, 72px)); margin: 0 auto; padding: 32px 0 80px; }
 .compact-hero { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); height: clamp(680px, 78vh, 860px); overflow: hidden; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; box-shadow: var(--shadow); }
 .hero-copy { min-width: 0; padding: clamp(54px, 5.6vw, 104px); display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+.hero-copy-pending { visibility: hidden; opacity: 0; }
+.hero-copy-ready { visibility: visible; opacity: 1; transition: opacity 180ms ease; }
 .overline { margin: 0; color: var(--muted); font-size: 0.72rem; font-weight: 600; letter-spacing: 0.09em; text-transform: uppercase; }
 .hero-copy h1 { margin: 0 0 34px; font-size: clamp(2.9rem, 4.1vw, 4.9rem); font-weight: 650; line-height: 1.03; letter-spacing: -0.055em; }
 .hero-copy h1 span { display: block; white-space: nowrap; }
@@ -256,6 +263,7 @@ footer > a:last-child { color: var(--accent); }
     .lightbox { display:none; opacity:0; pointer-events:none; animation:none; }
     .lightbox.open { display:block; opacity:1; pointer-events:auto; animation:lightbox-in 220ms ease both; }
   </style>
+  <noscript><style>.hero-copy { visibility: visible !important; opacity: 1 !important; }</style></noscript>
 </head>
 <body>
   <header class="topbar">
@@ -272,9 +280,9 @@ footer > a:last-child { color: var(--accent); }
   <main class="site-content" id="top">
     <section class="compact-hero reveal" aria-labelledby="hero-title">
       <div class="hero-visual hero-photo"><img id="hero-image" src="hero-pavilion-square.png" alt="海边完整灯塔、月亮与水面的黑白照片" fetchpriority="high"></div>
-      <div class="hero-copy">
-        <h1 id="hero-title"><span>The image itself</span><span>has not changed.</span></h1>
-        <p class="quote-credit" id="quote-credit">—— Donald Alexander Sheff</p>
+      <div class="hero-copy hero-copy-pending">
+        <h1 id="hero-title"><span>好 ≠ 不坏</span></h1>
+        <p class="quote-credit" id="quote-credit">—— Bernina Qian</p>
       </div>
     </section>
 
@@ -398,9 +406,10 @@ footer > a:last-child { color: var(--accent); }
     const supabaseKey=String(guestbookConfig.supabasePublishableKey||'');
     const guestbookReady=Boolean(supabaseUrl&&supabaseKey);
     const guestbookHeaders=function(extra){const headers=Object.assign({apikey:supabaseKey,'Content-Type':'application/json'},extra||{});if(!supabaseKey.startsWith('sb_publishable_'))headers.Authorization='Bearer '+supabaseKey;return headers};
-    function splitQuote(value){const quote=String(value||'').trim();if(quote==='The image itself has not changed.')return ['The image itself','has not changed.'];const words=quote.split(/s+/).filter(Boolean);if(words.length<6)return [quote];const middle=Math.ceil(words.length/2);return [words.slice(0,middle).join(' '),words.slice(middle).join(' ')]}
+    function splitQuote(value){const quote=String(value||'').trim();const words=quote.split(/s+/).filter(Boolean);if(words.length<6)return [quote];const middle=Math.ceil(words.length/2);return [words.slice(0,middle).join(' '),words.slice(middle).join(' ')]}
+    function revealHeroCopy(){const copy=document.querySelector('.hero-copy');copy.classList.remove('hero-copy-pending');copy.classList.add('hero-copy-ready')}
     function loadPortfolio(){
-      if(!guestbookReady)return;
+      if(!guestbookReady){revealHeroCopy();return}
       const headers=guestbookHeaders();
       Promise.all([
         fetch(supabaseUrl+'/rest/v1/portfolio_albums?select=*&published=eq.true&order=year.desc,month.desc,sort_order.desc',{headers:headers}),
@@ -410,9 +419,9 @@ footer > a:last-child { color: var(--accent); }
         if(rows[0].length){albums=rows[0].map(function(album){return Object.assign({},album,{collection:album.collection||'bw'})});allPhotos=rows[1];selectMode(mode)}
         const settings=rows[2][0];if(!settings)return;
         heroSources=unpackHeroSources(settings.hero_image_url);document.getElementById('hero-image').src=heroSources[mode];
-        if(settings.quote_text){const quote=unpackRichText(settings.quote_text,'The image itself has not changed.');const heroTitle=document.getElementById('hero-title');heroTitle.innerHTML=splitQuote(quote.text).map(function(line){return '<span>'+escapeHtml(line)+'</span>'}).join('');heroTitle.style.cssText=richStyle(quote.style)}
-        if(settings.quote_author){const author=unpackRichText(settings.quote_author,'Donald Alexander Sheff');const credit=document.getElementById('quote-credit');credit.textContent='—— '+author.text;credit.style.cssText=richStyle(author.style)}
-      }).catch(function(){})
+        if(settings.quote_text){const quote=unpackRichText(settings.quote_text,'好 ≠ 不坏');const heroTitle=document.getElementById('hero-title');heroTitle.innerHTML=splitQuote(quote.text).map(function(line){return '<span>'+escapeHtml(line)+'</span>'}).join('');heroTitle.style.cssText=richStyle(quote.style)}
+        if(settings.quote_author){const author=unpackRichText(settings.quote_author,'Bernina Qian');const credit=document.getElementById('quote-credit');credit.textContent='—— '+author.text;credit.style.cssText=richStyle(author.style)}
+      }).catch(function(){}).finally(revealHeroCopy)
     }
     loadPortfolio();
 

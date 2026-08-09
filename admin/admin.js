@@ -322,8 +322,8 @@
 
   function fillSettings() {
     const settings = state.settings || {};
-    $("#setting-quote").value = unpackRichValue(settings.quote_text, "The image itself has not changed.").text;
-    $("#setting-author").value = unpackRichValue(settings.quote_author, "Donald Alexander Sheff").text;
+    $("#setting-quote").value = unpackRichValue(settings.quote_text, "好 ≠ 不坏").text;
+    $("#setting-author").value = unpackRichValue(settings.quote_author, "Bernina Qian").text;
     $("#setting-hero-url").value = settings.hero_image_url || "";
   }
 
@@ -405,7 +405,7 @@
       await rest("site_settings?id=eq.main", { method: "PATCH", body: patch, prefer: "return=minimal" });
       Object.assign(state.settings, patch);
     } else {
-      const payload = { id: "main", quote_text: "The image itself has not changed.", quote_author: "Donald Alexander Sheff", about_text: "", hero_image_url: "", ...patch };
+      const payload = { id: "main", quote_text: "好 ≠ 不坏", quote_author: "Bernina Qian", about_text: "", hero_image_url: "", ...patch };
       await rest("site_settings", { method: "POST", body: payload, prefer: "return=minimal" });
       state.settings = payload;
     }
